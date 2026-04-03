@@ -1,0 +1,12 @@
+{
+  "name": "default-landing-page",
+  "description": "Hello World — static landing page",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "serve public"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
