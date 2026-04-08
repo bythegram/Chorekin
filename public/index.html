@@ -1,16 +1,119 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="icons/favicon.ico" sizes="any">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <title>Hello World</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chorekin - Your Chore Companion</title>
+    <script src="https://kit.webawesome.com/5a9eb33a3c514f85.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main>
-    <h1>Hello World</h1>
-  </main>
+
+<div id="app">
+    
+    <!-- Pet Selection Dialog -->
+    <wa-dialog id="pet-select-dialog" label="Pick your Chorekin!">
+        <div class="grid-2 mt-1">
+            <wa-button onclick="selectPet('fuzzy')">The FuzzyPuff</wa-button>
+            <wa-button onclick="selectPet('glow')">The Glow-Jelly</wa-button>
+        </div>
+    </wa-dialog>
+
+    <section id="screen-game">
+        <!-- add section for experience points display -->
+        <div id="exp-rating-wrapper">
+            <wa-rating id="exp-rating" label="Level Progress" max="3" value="0"></wa-rating>
+            <span id="exp-points"></span>
+        </div>
+        <div class="stats-wrapper">
+            <wa-progress-bar id="stat-hunger" value="100" max="100" variant="success" label="Tummy status"></wa-progress-bar>
+        </div>
+        <wa-tab-group id="bottom-tabs" class="screen active" placement="bottom" without-scroll-controls="true">  
+            <wa-tab-panel name="character">
+                <div id="pet-stage">
+                    <wa-animation class="pet-box happy" name="pulse" easing="ease-in-out" duration="10000" play>
+                      <img id="pet-image" src="./images/fluffy-happy.png" alt="Your Chorekin">
+                    </wa-animation>
+                    <wa-animation class="pet-box angry" name="tada" easing="ease-in-out" duration="2000" play>
+                      <img id="pet-image" src="./images/fluffy-mad.png" alt="Your Chorekin">
+                    </wa-animation>
+                    <wa-animation class="pet-box sad" name="shake" easing="ease-in-out" duration="2000" play>
+                      <img id="pet-image" src="./images/fluffy-sad.png" alt="Your Chorekin">
+                    </wa-animation>
+                    <wa-animation class="pet-box hungry" name="wobble" easing="ease-in-out" duration="8000" play>
+                      <img id="pet-image" src="./images/fluffy-hungry.png" alt="Your Chorekin">
+                    </wa-animation>
+                </div>
+            </wa-tab-panel>
+            <wa-tab-panel name="chores">
+                  <div id="no-chores-state" style="display:none;">
+                    <p>Oh no! You have no chores. Ask your parent to add some to get started.</p>
+                  </div>
+                <div id="chore-container" class="mt-1">
+                </div>
+            </wa-tab-panel>
+            <wa-tab-panel name="math">
+                <div id="math-card" class="mt-1 text-center">
+                    <wa-badge id="stat-math-level" variant="neutral" style="margin-bottom: 1rem;">Math Lvl 1</wa-badge>
+                    <h1 id="math-problem">2 + 2</h1>
+                    <wa-input id="math-answer" type="number" placeholder="?"></wa-input>
+                    <wa-button id="btn-math-submit" variant="success" class="mt-1" block>Check Answer</wa-button>
+                    <p id="math-feedback" class="mt-1"></p>
+                </div>
+            </wa-tab-panel>
+            <wa-tab-panel name="settings">
+                <div class="setup-section">
+                <h2>Parent Setup</h2>
+                <div id="pin-setup" style="display:none;">
+                  <p>Set a 4-digit PIN to approve chores and manage settings.</p>
+                  <wa-input id="setup-pin" type="password" label="Create PIN" maxlength="4" password-toggle></wa-input>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var pinInput = document.getElementById('pin-setup');
+                    var startBtn = document.getElementById('btn-save-setup');
+                    var pinSet = false;
+                    try {
+                        var data = localStorage.getItem('chorekin_data');
+                        if (data) {
+                            var db = JSON.parse(data);
+                            pinSet = !!db.pin;
+                        }
+                    } catch(e) {}
+                    if (pinInput && startBtn && !pinSet) {
+                        pinInput.style.display = '';
+                        startBtn.style.display = '';
+                    }
+                });
+                </script>
+                <h4 class="mt-1">Add Chores</h4>
+                <form id="add-chore-form">
+                    <wa-input id="chore-name" label="Chore Name" required style="flex:1;"></wa-input>
+                    <wa-input id="chore-desc" label="Description" style="flex:1;"></wa-input>
+                    <wa-input id="chore-points" label="Points" type="number" min="1" max="100" value="10"></wa-input>
+                    <wa-button id="btn-add-chore" variant="success" type="submit" style="flex:1;">Add</wa-button>
+                </form>
+                <wa-button id="btn-save-setup" variant="primary" class="mt-1" style="display: none; width: 100%;">Start Adventure</wa-button>
+              </div>
+            </wa-tab-panel>
+            <wa-tab slot="nav" panel="character"><wa-icon name="user"></wa-icon><div class="label">Character</div></wa-tab>
+            <wa-tab slot="nav" panel="chores"><wa-icon name="list-check"></wa-icon><div class="label">Chores</div></wa-tab>
+            <wa-tab slot="nav" panel="math"><wa-icon name="calculator"></wa-icon><div class="label">Math</div></wa-tab>
+            <wa-tab slot="nav" panel="settings"><wa-icon name="gear"></wa-icon><div class="label">Settings</div></wa-tab>
+        </wa-tab-group>
+    </section>
+
+</div>
+
+<wa-dialog id="pin-dialog" label="Parent Approval">
+    <wa-input id="pin-input" type="password" maxlength="4" label="Enter PIN"></wa-input>
+    <wa-button slot="footer" id="btn-pin-confirm" variant="primary">Confirm</wa-button>
+</wa-dialog>
+
+<wa-drawer id="reward-center-drawer" placement="top">
+    <h4>Reward Center</h4>
+</wa-drawer>
+
+<script type="module" src="./app.js"></script>
 </body>
 </html>
