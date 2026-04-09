@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 1, name: "Clean Room", points: 20, desc: "Pick up all toys" },
             { id: 2, name: "Brush Teeth", points: 5, desc: "2 minutes of brushing" }
         ],
-        showStats: false
+        showStats: false,
+        unlockedRewards: [],
+        activeReward: null
     };
 
     function loadDb() {
@@ -30,8 +32,129 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const G = {
         db: loadDb(),
+        rewards: [],
         save() { localStorage.setItem('chorekin_data', JSON.stringify(this.db)); }
     };
+
+    // ── Reward Center ──────────────────────────────────────────
+    const CSS_COLOR_RE = /^#[0-9a-fA-F]{3,8}$|^[a-z]+$/;
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    async function loadRewards() {
+        try {
+            const res = await fetch('./rewards/rewards.json');
+            const json = await res.json();
+            G.rewards = json.rewards || [];
+        } catch (e) {
+            console.warn('Could not load rewards.json', e);
+            G.rewards = [];
+        }
+    }
+
+    function applyTheme(reward) {
+        const root = document.documentElement;
+        // Clear any previously applied theme vars first
+        const allRewardVarKeys = G.rewards
+            .filter(r => r.type === 'palette' && r.data && r.data.cssVars)
+            .flatMap(r => Object.keys(r.data.cssVars));
+        [...new Set(allRewardVarKeys)].forEach(k => root.style.removeProperty(k));
+
+        if (!reward || !reward.data || !reward.data.cssVars) return;
+        Object.entries(reward.data.cssVars).forEach(([prop, val]) => {
+            root.style.setProperty(prop, val);
+        });
+    }
+
+    function restoreActiveTheme() {
+        if (!G.db.activeReward) return;
+        const reward = G.rewards.find(r => r.id === G.db.activeReward);
+        if (reward) applyTheme(reward);
+    }
+
+    function getPalettePreviewColors(reward) {
+        if (!reward.data || !reward.data.cssVars) return [];
+        const vars = reward.data.cssVars;
+        return [
+            vars['--pet-stage-default-bg'],
+            vars['--app-bg'],
+            vars['--bg-color']
+        ].filter(c => c && CSS_COLOR_RE.test(c));
+    }
+
+    function renderRewardCenter() {
+        const xpEl = document.getElementById('reward-center-xp');
+        const listEl = document.getElementById('reward-center-list');
+        if (!listEl) return;
+
+        if (xpEl) xpEl.textContent = `You have ${G.db.exp} XP`;
+
+        listEl.innerHTML = G.rewards.map(reward => {
+            const isUnlocked = G.db.unlockedRewards.includes(reward.id);
+            const isActive = G.db.activeReward === reward.id;
+            const canAfford = G.db.exp >= reward.cost;
+            const previewColors = getPalettePreviewColors(reward);
+
+            const previewHtml = previewColors.length
+                ? `<div class="palette-preview">${previewColors.map(c => `<span style="background:${escHtml(c)}"></span>`).join('')}</div>`
+                : '';
+
+            let actionBtn;
+            if (isActive) {
+                actionBtn = `<wa-button size="small" variant="success" disabled>Active</wa-button>`;
+            } else if (isUnlocked) {
+                actionBtn = `<wa-button size="small" variant="primary" data-reward-action="apply" data-reward-id="${escHtml(reward.id)}">Apply</wa-button>`;
+            } else {
+                actionBtn = `<wa-button size="small" variant="${canAfford ? 'warning' : 'neutral'}" ${canAfford ? '' : 'disabled'} data-reward-action="purchase" data-reward-id="${escHtml(reward.id)}">Unlock – ${reward.cost} XP</wa-button>`;
+            }
+
+            return `
+                <div class="reward-card${isActive ? ' active-reward' : ''}">
+                    ${previewHtml}
+                    <span class="reward-name">${escHtml(reward.name)}</span>
+                    <span class="reward-desc">${escHtml(reward.description)}</span>
+                    ${actionBtn}
+                </div>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('reward-center-list').addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-reward-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-reward-action');
+        const id = btn.getAttribute('data-reward-id');
+        if (action === 'purchase') window.purchaseReward(id);
+        else if (action === 'apply') window.applyReward(id);
+    });
+
+    window.purchaseReward = function(id) {
+        const reward = G.rewards.find(r => r.id === id);
+        if (!reward || G.db.unlockedRewards.includes(id)) return;
+        if (G.db.exp < reward.cost) return;
+        G.db.exp -= reward.cost;
+        G.db.unlockedRewards.push(id);
+        G.save();
+        updateExpRating();
+        renderRewardCenter();
+    };
+
+    window.applyReward = function(id) {
+        const reward = G.rewards.find(r => r.id === id);
+        if (!reward || !G.db.unlockedRewards.includes(id)) return;
+        G.db.activeReward = id;
+        G.save();
+        applyTheme(reward);
+        renderRewardCenter();
+    };
+    // ── End Reward Center ──────────────────────────────────────
     const MathEngine = {
         currentProblem: {},
         generate() {
@@ -159,7 +282,10 @@ document.addEventListener('DOMContentLoaded', function() {
         showScreen('setup');
     } else {
         showScreen('game');
-        initGame();
+        loadRewards().then(() => {
+            restoreActiveTheme();
+            initGame();
+        });
         setupTabs();
         // Start hunger bar update interval
         setInterval(updatePetVisuals, 60000); // update every minute
@@ -169,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rewardCenterDrawer = document.getElementById('reward-center-drawer');
         if (expWrapper && rewardCenterDrawer) {
             expWrapper.addEventListener('click', () => {
+                renderRewardCenter();
                 rewardCenterDrawer.setAttribute('open', '');
             });
         }

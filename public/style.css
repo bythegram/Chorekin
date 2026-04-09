@@ -1,5 +1,7 @@
 :root {
     --bg-color: #f4f7f6;
+    --app-bg: white;
+    --pet-stage-default-bg: #2c3e50;
     --container-max: 30rem;
 }
 
@@ -14,7 +16,7 @@ body {
 #app {
     width: 100%;
     max-width: var(--container-max);
-    background: white;
+    background: var(--app-bg);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -34,7 +36,7 @@ body {
 #pet-stage {
     width: 100%;
     aspect-ratio: 1/1;
-    background: #2c3e50;
+    background: var(--pet-stage-default-bg);
     border-radius: 0.75rem;
     overflow: hidden;
     margin-bottom: 1rem;
@@ -196,4 +198,62 @@ body {
     #bottom-tabs div.label {
         display: none;
     }
+}
+
+/* Reward Center */
+#reward-center-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0.5rem 0 1rem;
+}
+
+.reward-card {
+    border: 0.125rem solid #e0e0e0;
+    border-radius: 0.625rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    background: var(--app-bg);
+    transition: border-color 180ms ease;
+}
+
+.reward-card.active-reward {
+    border-color: var(--wa-color-success-fill-loud, #4caf50);
+}
+
+.reward-card .palette-preview {
+    display: flex;
+    gap: 0.25rem;
+    height: 1.25rem;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.reward-card .palette-preview span {
+    flex: 1;
+}
+
+.reward-card .reward-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.reward-card .reward-desc {
+    font-size: 0.75rem;
+    color: var(--wa-color-text-muted, #888);
+    flex: 1;
+}
+
+.reward-card .reward-cost {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--wa-color-text-muted, #888);
+}
+
+#reward-center-xp {
+    font-size: 0.875rem;
+    color: var(--wa-color-text-muted, #888);
+    margin-bottom: 0.25rem;
 }
