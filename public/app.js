@@ -36,6 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
         save() { localStorage.setItem('chorekin_data', JSON.stringify(this.db)); }
     };
 
+    // Normalize reward-related fields in case of corrupted/legacy data
+    G.db.unlockedRewards = Array.isArray(G.db.unlockedRewards)
+        ? [...new Set(G.db.unlockedRewards.filter(id => typeof id === 'string'))]
+        : [];
+    G.db.activeReward = (typeof G.db.activeReward === 'string' && G.db.activeReward.length > 0)
+        ? G.db.activeReward
+        : null;
+
     // ── Reward Center ──────────────────────────────────────────
     const CSS_COLOR_RE = /^#[0-9a-fA-F]{3,8}$|^[a-z]+$/;
 
@@ -61,14 +69,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyTheme(reward) {
         const root = document.documentElement;
-        // Clear any previously applied theme vars first
+        // Clear any previously applied theme vars first (only custom properties)
         const allRewardVarKeys = G.rewards
             .filter(r => r.type === 'palette' && r.data && r.data.cssVars)
-            .flatMap(r => Object.keys(r.data.cssVars));
+            .flatMap(r => Object.keys(r.data.cssVars).filter(k => k.startsWith('--')));
         [...new Set(allRewardVarKeys)].forEach(k => root.style.removeProperty(k));
 
         if (!reward || !reward.data || !reward.data.cssVars) return;
         Object.entries(reward.data.cssVars).forEach(([prop, val]) => {
+            if (typeof prop !== 'string' || !prop.startsWith('--')) return;
+            if (typeof val !== 'string' || val.trim() === '') return;
+            if (!CSS.supports(prop, val)) return;
             root.style.setProperty(prop, val);
         });
     }
