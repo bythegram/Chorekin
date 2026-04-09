@@ -1,0 +1,52 @@
+{
+  "rewards": [
+    {
+      "id": "palette-ocean",
+      "type": "palette",
+      "name": "Ocean Breeze",
+      "description": "Cool blues and teals from the deep sea.",
+      "cost": 5,
+      "data": {
+        "cssVars": {
+          "--bg-color": "#caf0f8",
+          "--app-bg": "#f0f9ff",
+          "--pet-stage-default-bg": "#03045e",
+          "--wa-color-brand-fill-quiet": "#ade8f4",
+          "--wa-color-success-fill-quiet": "#90e0ef"
+        }
+      }
+    },
+    {
+      "id": "palette-sunset",
+      "type": "palette",
+      "name": "Sunset Glow",
+      "description": "Warm oranges and purples of a fading sun.",
+      "cost": 5,
+      "data": {
+        "cssVars": {
+          "--bg-color": "#ffe5d9",
+          "--app-bg": "#fff8f5",
+          "--pet-stage-default-bg": "#6a0572",
+          "--wa-color-brand-fill-quiet": "#ffccd5",
+          "--wa-color-success-fill-quiet": "#ffb347"
+        }
+      }
+    },
+    {
+      "id": "palette-forest",
+      "type": "palette",
+      "name": "Forest Walk",
+      "description": "Rich greens and earthy tones from the woodland.",
+      "cost": 5,
+      "data": {
+        "cssVars": {
+          "--bg-color": "#d8f3dc",
+          "--app-bg": "#f0faf2",
+          "--pet-stage-default-bg": "#1b4332",
+          "--wa-color-brand-fill-quiet": "#b7e4c7",
+          "--wa-color-success-fill-quiet": "#95d5b2"
+        }
+      }
+    }
+  ]
+}
