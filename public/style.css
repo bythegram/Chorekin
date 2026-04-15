@@ -201,6 +201,7 @@ body {
     cursor: pointer;
     background-color: var(--wa-color-success-fill-quiet);
     border: none;
+    border-bottom-right-radius: 0.75rem;
     font-family: inherit;
     font-size: inherit;
     color: inherit;

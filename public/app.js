@@ -317,6 +317,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+    // Settings button listener registered unconditionally so the drawer can
+    // always be reopened (e.g. after ESC during initial PIN setup)
+    setupSettingsBtn();
     function setupTabs() {
         const tabGroup = document.getElementById('bottom-tabs');
         const tabs = Array.from(tabGroup.querySelectorAll('wa-tab'));
@@ -325,26 +328,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 activateTab(tab.getAttribute('panel'));
             });
         });
-        const settingsBtn = document.getElementById('settings-btn');
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', () => {
-                if (G.db.pin) {
-                    const pinDialog = document.getElementById('pin-dialog');
-                    const pinInput = document.getElementById('pin-input');
-                    window._pendingPanelAccess = 'settings';
-                    window._pendingChoreId = null;
-                    if (pinInput) {
-                        pinInput.value = '';
-                        pinInput.setAttribute('placeholder', 'Enter PIN');
-                    }
-                    if (pinDialog) pinDialog.setAttribute('open', '');
-                } else {
-                    const settingsDrawer = document.getElementById('settings-drawer');
-                    if (settingsDrawer) settingsDrawer.setAttribute('open', '');
-                }
-            });
-        }
         activateTab('character');
+    }
+    function setupSettingsBtn() {
+        const settingsBtn = document.getElementById('settings-btn');
+        if (!settingsBtn) return;
+        settingsBtn.addEventListener('click', () => {
+            if (G.db.pin) {
+                const pinDialog = document.getElementById('pin-dialog');
+                const pinInput = document.getElementById('pin-input');
+                window._pendingPanelAccess = 'settings';
+                window._pendingChoreId = null;
+                if (pinInput) {
+                    pinInput.value = '';
+                    pinInput.setAttribute('placeholder', 'Enter PIN');
+                }
+                if (pinDialog) pinDialog.setAttribute('open', '');
+            } else {
+                const settingsDrawer = document.getElementById('settings-drawer');
+                if (settingsDrawer) settingsDrawer.setAttribute('open', '');
+            }
+        });
     }
     function initGame() {
         renderChores();
