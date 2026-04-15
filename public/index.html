@@ -61,46 +61,11 @@
                     <p id="math-feedback" class="mt-1"></p>
                 </div>
             </wa-tab-panel>
-            <wa-tab-panel name="settings">
-                <div class="setup-section">
-                <h2>Parent Setup</h2>
-                <div id="pin-setup" style="display:none;">
-                  <p>Set a 4-digit PIN to approve chores and manage settings.</p>
-                  <wa-input id="setup-pin" type="password" label="Create PIN" maxlength="4" password-toggle></wa-input>
-                </div>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var pinInput = document.getElementById('pin-setup');
-                    var startBtn = document.getElementById('btn-save-setup');
-                    var pinSet = false;
-                    try {
-                        var data = localStorage.getItem('chorekin_data');
-                        if (data) {
-                            var db = JSON.parse(data);
-                            pinSet = !!db.pin;
-                        }
-                    } catch(e) {}
-                    if (pinInput && startBtn && !pinSet) {
-                        pinInput.style.display = '';
-                        startBtn.style.display = '';
-                    }
-                });
-                </script>
-                <h4 class="mt-1">Add Chores</h4>
-                <form id="add-chore-form">
-                    <wa-input id="chore-name" label="Chore Name" required style="flex:1;"></wa-input>
-                    <wa-input id="chore-desc" label="Description" style="flex:1;"></wa-input>
-                    <wa-input id="chore-points" label="Points" type="number" min="1" max="100" value="10"></wa-input>
-                    <wa-button id="btn-add-chore" variant="success" type="submit" style="flex:1;">Add</wa-button>
-                </form>
-                <wa-button id="btn-save-setup" variant="primary" class="mt-1" style="display: none; width: 100%;">Start Adventure</wa-button>
-              </div>
-            </wa-tab-panel>
             <wa-tab slot="nav" panel="character"><wa-icon name="user"></wa-icon><div class="label">Character</div></wa-tab>
             <wa-tab slot="nav" panel="chores"><wa-icon name="list-check"></wa-icon><div class="label">Chores</div></wa-tab>
             <wa-tab slot="nav" panel="math"><wa-icon name="calculator"></wa-icon><div class="label">Math</div></wa-tab>
-            <wa-tab slot="nav" panel="settings"><wa-icon name="gear"></wa-icon><div class="label">Settings</div></wa-tab>
         </wa-tab-group>
+        <button id="settings-btn"><wa-icon name="gear"></wa-icon><div class="label">Settings</div></button>
     </section>
 
 </div>
@@ -109,6 +74,21 @@
     <wa-input id="pin-input" type="password" maxlength="4" label="Enter PIN"></wa-input>
     <wa-button slot="footer" id="btn-pin-confirm" variant="primary">Confirm</wa-button>
 </wa-dialog>
+
+<wa-drawer id="settings-drawer" label="Parent Setup" placement="end">
+    <div id="pin-setup" style="display:none;">
+        <p>Set a 4-digit PIN to approve chores and manage settings.</p>
+        <wa-input id="setup-pin" type="password" label="Create PIN" maxlength="4" password-toggle></wa-input>
+    </div>
+    <h4 class="mt-1">Add Chores</h4>
+    <form id="add-chore-form">
+        <wa-input id="chore-name" label="Chore Name" required style="flex:1;"></wa-input>
+        <wa-input id="chore-desc" label="Description" style="flex:1;"></wa-input>
+        <wa-input id="chore-points" label="Points" type="number" min="1" max="100" value="10"></wa-input>
+        <wa-button id="btn-add-chore" variant="success" type="submit" style="flex:1;">Add</wa-button>
+    </form>
+    <wa-button id="btn-save-setup" variant="primary" class="mt-1" style="display: none; width: 100%;">Start Adventure</wa-button>
+</wa-drawer>
 
 <wa-drawer id="reward-center-drawer" placement="top">
     <h4 style="margin:0 0 0.25rem;">🏆 Reward Center</h4>
