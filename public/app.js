@@ -192,8 +192,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (id === 'select') {
             document.getElementById('pet-select-dialog').setAttribute('open', '');
         } else if (id === 'setup') {
-            // toggle to the settings tab
-            tabs.setAttribute('active', 'settings');
+            // open the settings drawer and show the initial PIN setup elements
+            const settingsDrawer = document.getElementById('settings-drawer');
+            const pinSetup = document.getElementById('pin-setup');
+            const startBtn = document.getElementById('btn-save-setup');
+            if (pinSetup) pinSetup.style.display = '';
+            if (startBtn) startBtn.style.display = '';
+            if (settingsDrawer) settingsDrawer.setAttribute('open', '');
         } else if (id === 'game') {
             // toggle to the game tab
             tabs.setAttribute('active', 'character');
@@ -234,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const pinDialog = document.getElementById('pin-dialog');
         if (pin === G.db.pin) {
             if (window._pendingPanelAccess === 'settings') {
-                activateTab('settings');
+                const settingsDrawer = document.getElementById('settings-drawer');
+                if (settingsDrawer) settingsDrawer.setAttribute('open', '');
                 window._pendingPanelAccess = null;
                 window._pendingChoreId = null;
                 if (pinDialog) pinDialog.removeAttribute('open');
@@ -311,28 +317,38 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+    // Settings button listener registered unconditionally so the drawer can
+    // always be reopened (e.g. after ESC during initial PIN setup)
+    setupSettingsBtn();
     function setupTabs() {
         const tabGroup = document.getElementById('bottom-tabs');
         const tabs = Array.from(tabGroup.querySelectorAll('wa-tab'));
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                const panelName = tab.getAttribute('panel');
-                if (panelName === 'settings' && G.db.pin) {
-                    const pinDialog = document.getElementById('pin-dialog');
-                    const pinInput = document.getElementById('pin-input');
-                    window._pendingPanelAccess = 'settings';
-                    window._pendingChoreId = null;
-                    if (pinInput) {
-                        pinInput.value = '';
-                        pinInput.setAttribute('placeholder', 'Enter PIN');
-                    }
-                    if (pinDialog) pinDialog.setAttribute('open', '');
-                    return;
-                }
-                activateTab(panelName);
+                activateTab(tab.getAttribute('panel'));
             });
         });
         activateTab('character');
+    }
+    function setupSettingsBtn() {
+        const settingsBtn = document.getElementById('settings-btn');
+        if (!settingsBtn) return;
+        settingsBtn.addEventListener('click', () => {
+            if (G.db.pin) {
+                const pinDialog = document.getElementById('pin-dialog');
+                const pinInput = document.getElementById('pin-input');
+                window._pendingPanelAccess = 'settings';
+                window._pendingChoreId = null;
+                if (pinInput) {
+                    pinInput.value = '';
+                    pinInput.setAttribute('placeholder', 'Enter PIN');
+                }
+                if (pinDialog) pinDialog.setAttribute('open', '');
+            } else {
+                const settingsDrawer = document.getElementById('settings-drawer');
+                if (settingsDrawer) settingsDrawer.setAttribute('open', '');
+            }
+        });
     }
     function initGame() {
         renderChores();

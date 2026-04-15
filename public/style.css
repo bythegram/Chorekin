@@ -109,7 +109,7 @@ body {
 
 
 /* Chore List */
-#chore-container, .setup-section {
+#chore-container {
     width: 100%;
     height: 85%;
     overflow: scroll;
@@ -186,16 +186,31 @@ body {
 #bottom-tabs wa-tab:first-of-type {
     border-bottom-left-radius: 0.75rem;
 }
-#bottom-tabs wa-tab:nth-last-child(2) {
+#bottom-tabs wa-tab:last-child {
     border-bottom-right-radius: 0.75rem;
 }
-#bottom-tabs wa-tab:last-child{
+/* Settings button — floats fixed at bottom-right, styled to match the tabs */
+#settings-btn {
     position: fixed;
     bottom: 0;
     right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.625rem;
+    cursor: pointer;
+    background-color: var(--wa-color-success-fill-quiet);
+    border: none;
+    border-bottom-right-radius: 0.75rem;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
 }
 @media (max-width: 37.5rem) {
     #bottom-tabs div.label {
+        display: none;
+    }
+    #settings-btn div.label {
         display: none;
     }
 }
