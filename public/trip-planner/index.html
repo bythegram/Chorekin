@@ -132,6 +132,13 @@
             overflow: hidden;
         }
 
+        .destinations-error {
+            margin-top: 0.4rem;
+            margin-bottom: 0;
+            font-size: 0.72rem;
+            color: #b23a48;
+        }
+
         .flight-path {
             fill: none;
             stroke: #b9a764;
@@ -330,8 +337,11 @@
                 </div>
 
                 <div class="map-offer-grid">
-                    <div id="map-holder">
-                        <svg id="worldMap" width="100%" height="100%"></svg>
+                    <div>
+                        <div id="map-holder">
+                            <svg id="worldMap" width="100%" height="100%"></svg>
+                        </div>
+                        <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
                     </div>
                     <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
                         <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
@@ -393,6 +403,7 @@ d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/w
 const slider = document.getElementById('spendSlider');
 const originSelect = document.getElementById('originSelect');
 const offerCard = document.getElementById('offerCard');
+const destinationsError = document.getElementById('destinationsError');
 
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
@@ -434,9 +445,11 @@ async function loadDestinations() {
             throw new Error('Unable to load destinations');
         }
         destinations = await response.json();
+        destinationsError.classList.add('d-none');
     } catch (error) {
         console.error('Failed to load destinations.json:', error);
         destinations = [];
+        destinationsError.classList.remove('d-none');
     }
     updateUI(slider.value);
 }
