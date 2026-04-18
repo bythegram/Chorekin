@@ -286,25 +286,25 @@
                     <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
                     <select id="originSelect" class="form-select">
                         <option value="">Select Starting City...</option>
-                        <option value="JFK" data-lat="40.71" data-lon="-74.00" selected>New York (JFK)</option>
+                        <option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</option>
                         <option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</option>
                     </select>
                 </div>
 
                 <div class="mb-4">
                     <div class="d-flex justify-content-between spend-row">
-                        <span class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$3,800</span></span>
-                        <span class="points-value" id="pointsVal">118,400 Points</span>
+                        <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
+                        <span class="points-value" id="pointsVal">0 Points</span>
                     </div>
-                    <input type="range" class="form-range" id="spendSlider" min="0" max="8000" step="100" value="3800">
+                    <input type="range" class="form-range" id="spendSlider" min="0" max="8000" step="100" value="3800" aria-labelledby="monthlySpendLabel">
                 </div>
 
                 <div class="map-offer-grid">
                     <div id="map-holder">
                         <svg id="worldMap" width="100%" height="100%"></svg>
                     </div>
-                    <article class="offer-card">
-                        <div class="offer-header">EXCLUSIVE WELCOME OFFER</div>
+                    <article class="offer-card" aria-labelledby="offerHeading">
+                        <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
                         <div class="offer-body">
                             <p class="offer-bonus">80,000 Bonus Miles Offer</p>
                             <p class="offer-requirements">Requirements: after $2500 in purchases in the first 3 months</p>
@@ -315,20 +315,20 @@
                 <div class="text-center mb-3">
                     <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
                     <div class="benefits-row text-start">
-                        <article class="benefit-card">
-                            <div class="benefit-image"></div>
+                        <article class="benefit-card" aria-label="Paris Getaway destination">
+                            <div class="benefit-image" aria-hidden="true"></div>
                             <p class="benefit-title fw-semibold">Paris<br>Getaway</p>
                         </article>
-                        <article class="benefit-card">
-                            <div class="benefit-image"></div>
+                        <article class="benefit-card" aria-label="Tokyo Explorer destination">
+                            <div class="benefit-image" aria-hidden="true"></div>
                             <p class="benefit-title fw-semibold">Tokyo<br>Explorer</p>
                         </article>
-                        <article class="benefit-card">
-                            <div class="benefit-image"></div>
+                        <article class="benefit-card" aria-label="Airport Lounge Access benefit">
+                            <div class="benefit-image" aria-hidden="true"></div>
                             <p class="benefit-title fw-semibold">Airport<br>Lounge Access</p>
                         </article>
-                        <article class="benefit-card">
-                            <div class="benefit-image"></div>
+                        <article class="benefit-card" aria-label="Priority Boarding benefit">
+                            <div class="benefit-image" aria-hidden="true"></div>
                             <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
                         </article>
                     </div>
@@ -378,16 +378,27 @@ originSelect.addEventListener('change', (e) => {
 
 slider.addEventListener('input', (e) => updateUI(e.target.value));
 
+if (!originSelect.value) {
+    const jfkOption = originSelect.querySelector('option[value="JFK"]');
+    if (jfkOption) {
+        originSelect.value = "JFK";
+    } else if (originSelect.options.length > 1) {
+        originSelect.selectedIndex = 1;
+    }
+}
+
 updateUI(slider.value);
 
 function updateUI(spend) {
     const totalPoints = (spend * config.multiplier * 12) + config.bonus;
     document.getElementById('spendVal').innerText = `$${Math.round(spend)}`;
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
+    slider.setAttribute("aria-valuenow", Math.round(spend));
 
     // Clear and Redraw Arcs
     svg.selectAll(".flight-path").remove();
     const selected = originSelect.options[originSelect.selectedIndex];
+    if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
 
     destinations.forEach(d => {
