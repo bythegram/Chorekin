@@ -278,14 +278,15 @@ body {
     --map-ocean: #071433;
     --map-ocean-mid: #102a5e;
     --map-land-a: #2f6b63;
-    --map-land-b: #3a7e74;
     --sheet-bg: rgba(21, 29, 56, 0.82);
     --sheet-border: rgba(158, 181, 255, 0.35);
     --sheet-text: #f2f6ff;
+    --map-atmosphere-inset: -18% -5% 35%;
+    --search-row-offset: 16.5rem;
+    --bottom-tab-nav-height: 4.3rem;
 }
 
 body {
-    min-height: 100vh;
     background:
         radial-gradient(140% 70% at 50% -10%, #5f7ccf 0%, transparent 46%),
         radial-gradient(160% 100% at 50% 30%, var(--map-land-a) 0%, var(--map-ocean-mid) 54%, var(--map-ocean) 100%);
@@ -308,7 +309,7 @@ body {
 
 #map-atmosphere {
     position: absolute;
-    inset: -18% -5% 35%;
+    inset: var(--map-atmosphere-inset);
     border-radius: 50%;
     pointer-events: none;
     background:
@@ -341,6 +342,8 @@ body {
 }
 
 .map-control {
+    display: grid;
+    place-items: center;
     width: 2.75rem;
     height: 2.75rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -355,7 +358,7 @@ body {
     position: absolute;
     left: 1rem;
     right: 1rem;
-    bottom: 16.5rem;
+    bottom: var(--search-row-offset);
     z-index: 5;
     border-radius: 1.1rem;
     justify-content: flex-start;
@@ -376,7 +379,13 @@ body {
 }
 
 .stats-wrapper {
-    display: none;
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 13rem;
+    z-index: 5;
+    padding: 0;
+    background: transparent;
 }
 
 #bottom-tabs {
@@ -395,6 +404,7 @@ body {
 }
 
 #bottom-tabs::before {
+    /* Decorative grabber to mimic iOS bottom-sheet visual style */
     content: '';
     position: absolute;
     left: 50%;
@@ -408,7 +418,7 @@ body {
 
 #bottom-tabs wa-tab-panel {
     aspect-ratio: auto;
-    height: calc(100% - 4.3rem);
+    height: calc(100% - var(--bottom-tab-nav-height));
     overflow-y: auto;
     padding-bottom: 0.5rem;
 }
