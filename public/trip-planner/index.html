@@ -8,16 +8,265 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/topojson@3"></script>
     <style>
-        :root { --brand-gold: #d4af37; --brand-navy: #1a2b3c; }
-        .modal-content { border-radius: 20px; border: none; overflow: hidden; }
-        #map-holder { background: #f8f9fa; border-radius: 12px; height: 300px; position: relative; }
-        .flight-path { fill: none; stroke: var(--brand-gold); stroke-width: 2; stroke-dasharray: 5,5; opacity: 0; transition: opacity 0.5s; }
-        .active-path { opacity: 1; }
-        .apply-btn { background: linear-gradient(180deg, #f3d078 0%, #d4af37 100%); border: none; font-weight: bold; }
-        .spend-label { font-size: 0.85rem; color: #666; }
+        :root {
+            --brand-navy: #15203f;
+            --soft-border: #cfd2d8;
+            --modal-bg: #f8f8f9;
+            --soft-text: #5f6166;
+            --track-bg: #dcdde1;
+            --thumb-blue: #3463cf;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #9ea3ad 0%, #d8dbe0 100%);
+        }
+
+        .modal-dialog {
+            max-width: 760px;
+        }
+
+        .modal-content {
+            border-radius: 26px;
+            border: 0;
+            overflow: hidden;
+            background: var(--modal-bg);
+        }
+
+        .modal-header {
+            padding: 1.5rem 1.5rem 0.5rem;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            letter-spacing: 0.04em;
+            color: #131524;
+        }
+
+        .btn-close {
+            margin-left: 0;
+            opacity: 0.4;
+            transform: scale(1.4);
+        }
+
+        .modal-body {
+            padding: 0 1.5rem 1.6rem;
+        }
+
+        .section-label {
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        .form-select {
+            border: 2px solid var(--soft-border);
+            border-radius: 14px;
+            font-size: 1.15rem;
+            padding: 0.8rem 2.6rem 0.8rem 1rem;
+            color: #111;
+            background-size: 18px 12px;
+        }
+
+        .spend-row {
+            margin-bottom: 0.9rem;
+        }
+
+        .spend-value {
+            font-size: 1.05rem;
+            color: #111;
+        }
+
+        .points-value {
+            font-size: 0.95rem;
+            color: var(--soft-text);
+        }
+
+        .form-range {
+            height: 2rem;
+        }
+
+        .form-range::-webkit-slider-runnable-track {
+            height: 0.75rem;
+            background: var(--track-bg);
+            border-radius: 999px;
+        }
+
+        .form-range::-webkit-slider-thumb {
+            margin-top: -6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--thumb-blue);
+            box-shadow: 0 6px 14px rgba(52, 99, 207, 0.35);
+        }
+
+        .form-range::-moz-range-track {
+            height: 0.75rem;
+            background: var(--track-bg);
+            border-radius: 999px;
+        }
+
+        .form-range::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--thumb-blue);
+            box-shadow: 0 6px 14px rgba(52, 99, 207, 0.35);
+        }
+
+        .map-offer-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 1rem;
+            margin-top: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        #map-holder {
+            background: linear-gradient(135deg, #eff1f5 0%, #d9dde4 100%);
+            border: 2px solid #b8bdc4;
+            border-radius: 12px;
+            height: 260px;
+            overflow: hidden;
+        }
+
+        .flight-path {
+            fill: none;
+            stroke: #b9a764;
+            stroke-width: 4;
+            stroke-dasharray: 8,8;
+            opacity: 0;
+            transition: opacity 0.45s;
+        }
+
+        .active-path {
+            opacity: 1;
+        }
+
+        .offer-card {
+            border-radius: 14px;
+            border: 2px solid #aeb2b7;
+            overflow: hidden;
+            background: linear-gradient(180deg, #e8e8e9 0%, #f6f5f0 100%);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .offer-header {
+            background: #dfe1e3;
+            border-bottom: 1px solid #b8bdc4;
+            text-align: center;
+            font-size: 0.84rem;
+            line-height: 1.15;
+            letter-spacing: 0.02em;
+            padding: 0.85rem 0.55rem;
+            font-weight: 700;
+        }
+
+        .offer-body {
+            padding: 0.8rem 0.65rem;
+            text-align: center;
+            color: #151515;
+        }
+
+        .offer-bonus {
+            font-size: 0.62rem;
+            line-height: 1.2;
+            margin-bottom: 0.55rem;
+            font-weight: 600;
+        }
+
+        .offer-requirements {
+            font-size: 0.58rem;
+            line-height: 1.25;
+            margin: 0;
+        }
+
+        .benefits-heading {
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        .benefits-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.55rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .benefit-card {
+            border-radius: 10px;
+            border: 1px solid #b8bdc4;
+            background: #f8f7f2;
+            padding: 0.3rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        .benefit-image {
+            width: 100%;
+            height: 44px;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(130deg, #d9dce2 0%, #b0bdd8 100%);
+        }
+
+        .benefit-title {
+            font-size: 0.58rem;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .fly-text {
+            margin-bottom: 0.45rem;
+            font-size: 1rem;
+            line-height: 1.1;
+            color: #242424;
+        }
+
+        .apply-btn {
+            background: linear-gradient(180deg, #d8d9dc 0%, #cfd1d5 100%);
+            border: 0;
+            border-radius: 10px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: var(--brand-navy);
+            font-size: 0.95rem;
+            padding: 0.7rem 1rem;
+        }
+
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0.75rem;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .map-offer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .offer-bonus,
+            .offer-requirements {
+                font-size: 0.8rem;
+            }
+
+            .benefits-row {
+                overflow-x: auto;
+                display: flex;
+                padding-bottom: 0.2rem;
+            }
+
+            .benefit-card {
+                min-width: 110px;
+            }
+        }
     </style>
 </head>
-<body class="bg-secondary p-5">
+<body class="py-5">
 
 <div class="text-center">
     <button type="button" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#visualizerModal">
@@ -28,14 +277,14 @@
 <div class="modal fade" id="visualizerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title w-100 text-center small text-uppercase tracking-widest">The Destination Visualizer</h5>
+            <div class="modal-header border-0">
+                <h5 class="modal-title w-100 text-center text-uppercase">The Destination Visualizer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body px-4">
+            <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label fw-bold small">PLAN YOUR ESCAPE</label>
-                    <select id="originSelect" class="form-select border-2">
+                    <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
+                    <select id="originSelect" class="form-select">
                         <option value="">Select Starting City...</option>
                         <option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</option>
                         <option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</option>
@@ -43,20 +292,48 @@
                 </div>
 
                 <div class="mb-4">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fw-bold small">Monthly Spend: <span id="spendVal">$0</span></span>
-                        <span class="spend-label" id="pointsVal">0 Points</span>
+                    <div class="d-flex justify-content-between spend-row">
+                        <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
+                        <span class="points-value" id="pointsVal">0 Points</span>
                     </div>
-                    <input type="range" class="form-range" id="spendSlider" min="0" max="8000" step="100" disabled>
+                    <input type="range" class="form-range" id="spendSlider" min="0" max="8000" step="100" value="3800" aria-labelledby="monthlySpendLabel">
                 </div>
 
-                <div id="map-holder" class="mb-3">
-                    <svg id="worldMap" width="100%" height="100%"></svg>
+                <div class="map-offer-grid">
+                    <div id="map-holder">
+                        <svg id="worldMap" width="100%" height="100%"></svg>
+                    </div>
+                    <article class="offer-card" aria-labelledby="offerHeading">
+                        <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
+                        <div class="offer-body">
+                            <p class="offer-bonus">80,000 Bonus Miles Offer</p>
+                            <p class="offer-requirements">Requirements: after $2500 in purchases in the first 3 months</p>
+                        </div>
+                    </article>
                 </div>
 
                 <div class="text-center mb-3">
-                    <p class="small mb-1 text-muted">Fly There Faster —</p>
-                    <button class="btn apply-btn w-100 py-2">Apply Now &gt;</button>
+                    <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
+                    <div class="benefits-row text-start">
+                        <article class="benefit-card" aria-label="Paris Getaway destination">
+                            <div class="benefit-image" aria-hidden="true"></div>
+                            <p class="benefit-title fw-semibold">Paris<br>Getaway</p>
+                        </article>
+                        <article class="benefit-card" aria-label="Tokyo Explorer destination">
+                            <div class="benefit-image" aria-hidden="true"></div>
+                            <p class="benefit-title fw-semibold">Tokyo<br>Explorer</p>
+                        </article>
+                        <article class="benefit-card" aria-label="Airport Lounge Access benefit">
+                            <div class="benefit-image" aria-hidden="true"></div>
+                            <p class="benefit-title fw-semibold">Airport<br>Lounge Access</p>
+                        </article>
+                        <article class="benefit-card" aria-label="Priority Boarding benefit">
+                            <div class="benefit-image" aria-hidden="true"></div>
+                            <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
+                        </article>
+                    </div>
+                    <p class="fly-text">Fly There Faster —</p>
+                    <button class="btn apply-btn w-100">Apply Now</button>
                 </div>
             </div>
         </div>
@@ -91,7 +368,6 @@ const originSelect = document.getElementById('originSelect');
 
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
-    slider.disabled = false;
     
     // Snap to Minimum Logic
     const minCost = Math.min(...destinations.map(d => d.cost));
@@ -102,14 +378,27 @@ originSelect.addEventListener('change', (e) => {
 
 slider.addEventListener('input', (e) => updateUI(e.target.value));
 
+if (!originSelect.value) {
+    const jfkOption = originSelect.querySelector('option[value="JFK"]');
+    if (jfkOption) {
+        originSelect.value = "JFK";
+    } else if (originSelect.options.length > 1) {
+        originSelect.selectedIndex = 1;
+    }
+}
+
+updateUI(slider.value);
+
 function updateUI(spend) {
     const totalPoints = (spend * config.multiplier * 12) + config.bonus;
     document.getElementById('spendVal').innerText = `$${Math.round(spend)}`;
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
+    slider.setAttribute("aria-valuenow", Math.round(spend));
 
     // Clear and Redraw Arcs
     svg.selectAll(".flight-path").remove();
     const selected = originSelect.options[originSelect.selectedIndex];
+    if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
 
     destinations.forEach(d => {
