@@ -355,9 +355,9 @@
             }
 
             .top-left-overlays {
-                top: 5rem;
+                top: 1rem;
                 left: 0.75rem;
-                width: min(260px, calc(100vw - 1.5rem));
+                width: min(100%, calc(100vw - 1.5rem));
             }
 
             .modal-title {
@@ -420,6 +420,8 @@
                     </select>
                 </div>
 
+                <p id="destinationsError" class="destinations-error d-none mt-0 mb-3">Destination data is temporarily unavailable. Please try again shortly.</p>
+
                 <div class="mb-4">
                     <div class="d-flex justify-content-between spend-row">
                         <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
@@ -427,8 +429,6 @@
                     </div>
                     <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
                 </div>
-
-                <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
 
                 <div class="text-center mb-3">
                     <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
@@ -544,7 +544,7 @@ function renderBaseMap() {
     if (isNarrowViewport) {
         projection.center([-100, 40]);
         projection.scale(projection.scale() * 2.9);
-        projection.translate([width * 0.52, height * 0.62]);
+        projection.translate([width * 0.2, height * 0.43]);
     } else {
         projection.scale(projection.scale() * 2.2);
         const [translateX, translateY] = projection.translate();
@@ -565,7 +565,7 @@ function renderBaseMap() {
 
 async function loadDestinations() {
     try {
-        const response = await fetch('./trip-planner/destinations.json');
+        const response = await fetch('./destinations.json');
         if (!response.ok) {
             throw new Error('Unable to load destinations');
         }
