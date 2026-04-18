@@ -397,8 +397,8 @@
         <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
             <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
             <div class="offer-body">
-                <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
-                <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
+                <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles</p>
+                <p class="offer-requirements">after $2,500 in purchases in the first 3 months</p>
             </div>
         </article>
     </div>
@@ -481,7 +481,7 @@ const visualizerDrawer = document.getElementById('visualizerDrawer');
 const drawerToggle = document.getElementById('drawerToggle');
 const mapDescription = document.getElementById('mapDesc');
 
-offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles Offer`;
+offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles`;
 
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
