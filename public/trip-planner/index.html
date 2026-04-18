@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Destination Visualizer Prototype</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://kit.webawesome.com/5a9eb33a3c514f85.js" crossorigin="anonymous"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/topojson@3"></script>
     <style>
@@ -24,12 +24,22 @@
             --destination-base: #8e6f17;
             --destination-bonus: #12784d;
             --destination-stroke: #f2f5f9;
+            --panel-surface: rgba(247, 248, 251, 0.84);
+            --panel-outline: rgba(255, 255, 255, 0.65);
+            --panel-shadow: 0 -16px 48px rgba(14, 22, 44, 0.2);
+            --text-primary: #101a32;
+            --text-secondary: #4f5664;
+            --text-tertiary: #6e7480;
+            --accent: #2f63d3;
+            --accent-soft: rgba(47, 99, 211, 0.12);
         }
 
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #9ea3ad 0%, #d8dbe0 100%);
             overflow: hidden;
+            color: var(--text-primary);
+            font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
         }
 
         .map-page {
@@ -70,129 +80,137 @@
         }
 
         .visualizer-drawer {
-            --peek-height: 320px;
-            position: fixed;
-            right: 0;
-            left: 0;
-            bottom: 0;
-            height: min(60vh, 600px);
+            --size: min(50vh, 600px);
+            z-index: 1045;
+        }
+
+        .visualizer-drawer::part(overlay) {
+            background: transparent;
+        }
+
+        .visualizer-drawer::part(panel) {
             border-top-left-radius: 26px;
             border-top-right-radius: 26px;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
             border: 0;
-            background: rgba(248, 248, 249, 0.1);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            visibility: visible;
-            transform: translateY(calc(100% - var(--peek-height)));
-            transition: transform 0.35s ease;
-            z-index: 1045;
-            display: flex;
-            flex-direction: column;
+            border-top: 1px solid var(--panel-outline);
+            background: var(--panel-surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: var(--panel-shadow);
         }
 
-        .visualizer-drawer.drawer-expanded {
-            transform: translateY(0);
-        }
-
-        .drawer-toggle {
-            position: absolute;
-            top: 0.7rem;
-            right: 1rem;
-            width: auto;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            color: var(--brand-navy);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            padding: 0.15rem 0.5rem;
-            line-height: 1;
-            font-size: 1.35rem;
-            z-index: 2;
-        }
-
-        .visualizer-drawer .offcanvas-header {
-            padding: 1.5rem 1.5rem 0.5rem;
-        }
-
-        .modal-title {
-            font-size: 2rem;
-            letter-spacing: 0.04em;
-            color: #131524;
-        }
-
-        .btn-close {
-            margin-left: 0;
-            opacity: 0.4;
-            transform: scale(1.4);
-        }
-
-        .visualizer-drawer .offcanvas-body {
-            padding: 2.35rem 1.5rem 1.6rem;
+        .visualizer-drawer::part(body) {
+            padding: .4rem 1.5rem 1.6rem;
             overflow-y: auto;
         }
 
-        .section-label {
-            margin-bottom: 0.6rem;
-            font-size: 0.9rem;
+        .drawer-content {
+            position: relative;
+        }
+
+        .drawer-fab {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 1050;
+            font-weight: 700;
             letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .drawer-fab::part(base) {
+            border-radius: 999px;
+            border: 1px solid #19356e;
+            background: linear-gradient(180deg, #1f3a7c 0%, #173165 100%);
+            color: #f7f9ff;
+            box-shadow: 0 8px 16px rgba(21, 49, 105, 0.35);
+        }
+
+        .section-label {
+            margin-bottom: 0.55rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.13em;
+            color: var(--text-tertiary);
         }
 
         .form-select {
+            display: block;
+            width: 100%;
+        }
+
+        .form-select::part(combobox) {
             border: 2px solid var(--soft-border);
             border-radius: 14px;
-            font-size: 1.15rem;
-            padding: 0.8rem 2.6rem 0.8rem 1rem;
-            color: #111;
-            background-size: 18px 12px;
+            min-height: 50px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            background: #fff;
+            padding: 0.2rem 0.35rem;
+            box-shadow: none;
+        }
+
+        .form-select:focus-within::part(combobox) {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.22rem var(--accent-soft);
+        }
+
+        .form-select::part(listbox) {
+            border: 1px solid var(--soft-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 24px rgba(14, 22, 44, 0.2);
         }
 
         .spend-row {
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.7rem;
+            align-items: baseline;
         }
 
         .spend-value {
-            font-size: 1.05rem;
-            color: #111;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 700;
         }
 
         .points-value {
-            font-size: 0.95rem;
-            color: var(--soft-text);
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
         }
 
-        .form-range {
-            height: 2rem;
+        .spend-figure {
+            margin: 0 0 0.75rem;
+            font-size: clamp(2rem, 4vw, 2.55rem);
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
         }
 
-        .form-range::-webkit-slider-runnable-track {
-            height: 0.75rem;
+        .spend-figure span {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .spend-range {
+            width: 100%;
+            --track-size: 0.75rem;
+            --thumb-width: 1.5rem;
+            --thumb-height: 1.5rem;
+        }
+
+        .spend-range::part(track) {
             background: var(--track-bg);
             border-radius: 999px;
         }
 
-        .form-range::-webkit-slider-thumb {
-            margin-top: -6px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+        .spend-range::part(indicator) {
             background: var(--thumb-blue);
-            box-shadow: 0 6px 14px rgba(52, 99, 207, 0.35);
-        }
-
-        .form-range::-moz-range-track {
-            height: 0.75rem;
-            background: var(--track-bg);
             border-radius: 999px;
         }
 
-        .form-range::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border: 0;
-            border-radius: 50%;
+        .spend-range::part(thumb) {
             background: var(--thumb-blue);
             box-shadow: 0 6px 14px rgba(52, 99, 207, 0.35);
         }
@@ -246,107 +264,159 @@
         }
 
         .offer-card {
+            display: block;
+            border: 0;
             border-radius: 14px;
-            border: 2px solid #aeb2b7;
-            overflow: hidden;
-            background: linear-gradient(180deg, #e8e8e9 0%, #f6f5f0 100%);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
             cursor: pointer;
             transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+        }
+
+        .offer-card::part(base) {
+            border-radius: 14px;
+            border: 1px solid #bbc0c9;
+            overflow: hidden;
+            background: linear-gradient(180deg, #f4f6f9 0%, #eceff4 100%);
+            box-shadow: 0 8px 22px rgba(18, 29, 56, 0.15);
         }
 
         .offer-card:hover {
             transform: translateY(-1px);
         }
 
-        .offer-card.offer-active {
+        .offer-card.offer-active::part(base) {
             border-color: #2f9d6f;
-            box-shadow: 0 5px 14px rgba(47, 157, 111, 0.25);
+            box-shadow: 0 8px 22px rgba(47, 157, 111, 0.28);
         }
 
-        .offer-header {
-            background: #dfe1e3;
+        .offer-card::part(header) {
+            background: #e5e9ef;
             border-bottom: 1px solid #b8bdc4;
             text-align: center;
-            font-size: 0.84rem;
+            font-size: 0.68rem;
             line-height: 1.15;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.09em;
             padding: 0.85rem 0.55rem;
             font-weight: 700;
+            color: #3f4a5c;
         }
 
-        .offer-body {
+        .offer-card::part(body) {
             padding: 0.8rem 0.65rem;
             text-align: center;
             color: #151515;
         }
 
+        .offer-header {
+            margin: 0;
+            font: inherit;
+            color: inherit;
+            letter-spacing: inherit;
+            line-height: inherit;
+        }
+
         .offer-bonus {
-            font-size: 0.62rem;
+            font-size: 1.15rem;
             line-height: 1.2;
-            margin-bottom: 0.55rem;
-            font-weight: 600;
+            margin-bottom: 0.35rem;
+            font-weight: 800;
+            color: #0f1832;
+            letter-spacing: -0.01em;
         }
 
         .offer-requirements {
-            font-size: 0.58rem;
+            font-size: 0.68rem;
             line-height: 1.25;
             margin: 0;
+            color: var(--text-secondary);
         }
 
         .benefits-heading {
-            margin-bottom: 0.6rem;
-            font-size: 0.9rem;
-            letter-spacing: 0.02em;
+            margin-bottom: 0.65rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
         }
 
         .benefits-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.55rem;
+            display: block;
+            width: 100%;
+            --slide-gap: 0.55rem;
+            --scroll-hint: 0;
             margin-bottom: 0.9rem;
         }
 
+        .benefits-row::part(base) {
+            width: 100%;
+        }
+
+        .benefits-row::part(scroll-container) {
+            padding-bottom: 0.2rem;
+            align-items: stretch;
+        }
+
+        .benefits-slide {
+            display: block;
+            height: 100%;
+            min-height: 220px;
+        }
+
         .benefit-card {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            border: 0;
+            border-radius: 10px;
+            height: 100%;
+            min-height: 210px;
+            aspect-ratio: 1 / 1;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .benefit-card::part(base) {
             border-radius: 10px;
             border: 1px solid #b8bdc4;
             background: #f8f7f2;
-            padding: 0.3rem;
+            padding: 0.4rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            height: 100%;
         }
 
-        .benefit-card.benefit-unlocked {
+        .benefit-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .benefit-card:hover::part(base) {
+            box-shadow: 0 4px 10px rgba(17, 27, 47, 0.18);
+        }
+
+        .benefit-card.benefit-unlocked::part(base) {
             border-color: #2f9d6f;
             box-shadow: 0 2px 6px rgba(47, 157, 111, 0.22);
         }
 
+        .benefit-card::part(body) {
+            padding: 0;
+        }
+
+        .benefit-media-wrap {
+            position: relative;
+        }
+
         .benefit-image {
             width: 100%;
-            height: 44px;
+            height: 64px;
             border-radius: 8px;
-            margin-bottom: 0.25rem;
             background: linear-gradient(130deg, #d9dce2 0%, #b0bdd8 100%);
         }
 
-        .benefit-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .benefit-card::part(media) {
+            padding: 0.4rem 0.4rem 0;
             margin-bottom: 0.25rem;
-            gap: 0.3rem;
-        }
-
-        .benefit-type {
-            font-size: 0.52rem;
-            line-height: 1;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            color: #3e4958;
         }
 
         .benefit-lock {
-            width: 1rem;
-            height: 1rem;
+            width: 1.15rem;
+            height: 1.15rem;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -355,6 +425,16 @@
             line-height: 1;
             background: #d8dae0;
             color: #4f5664;
+            position: absolute;
+            top: 0.35rem;
+            right: 0.35rem;
+            z-index: 2;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .benefit-lock wa-icon {
+            font-size: 0.62rem;
+            line-height: 1;
         }
 
         .benefit-lock.is-unlocked {
@@ -363,34 +443,83 @@
         }
 
         .benefit-title {
-            font-size: 0.58rem;
-            line-height: 1.1;
+            font-size: 0.68rem;
+            line-height: 1.2;
             margin: 0;
+            color: #1e2638;
         }
 
         .fly-text {
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.25rem;
             font-size: 0.72rem;
             line-height: 1.3;
-            color: #8b8e94;
+            color: var(--text-tertiary);
         }
 
         .apply-btn {
-            background: linear-gradient(180deg, #d8d9dc 0%, #cfd1d5 100%);
-            border: 0;
-            border-radius: 10px;
             font-weight: 800;
-            letter-spacing: 0.02em;
-            color: var(--brand-navy);
+            letter-spacing: 0.05em;
             font-size: 0.95rem;
-            padding: 0.7rem 1rem;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .apply-btn::part(base) {
+            border-radius: 10px;
+            border: 1px solid #19356e;
+            background: linear-gradient(180deg, #1f3a7c 0%, #173165 100%);
+            color: #f7f9ff;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            box-shadow: 0 8px 16px rgba(21, 49, 105, 0.35);
+            padding: 0.78rem 1rem;
+        }
+
+        .apply-btn:hover,
+        .apply-btn:focus-visible {
+            filter: brightness(1.06);
+        }
+
+        .field-group {
+            margin-bottom: 1rem;
+        }
+
+        .spend-panel {
+            margin-bottom: 1.5rem;
+        }
+
+        .spend-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .benefits-section {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .benefits-row,
+        .benefits-heading {
+            text-align: left;
+        }
+
+        .section-title {
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .benefit-title {
+            font-weight: 600;
+        }
+
+        .is-hidden {
+            display: none !important;
         }
 
         @media (max-width: 576px) {
             .visualizer-drawer {
-                border-top-left-radius: 18px;
-                border-top-right-radius: 18px;
-                --peek-height: 335px;
+                --size: min(50vh, 540px);
             }
 
             .top-left-overlays {
@@ -399,23 +528,36 @@
                 width: min(100%, calc(100vw - 1.5rem));
             }
 
-            .modal-title {
-                font-size: 1.2rem;
-            }
-
             .offer-bonus,
             .offer-requirements {
-                font-size: 0.8rem;
+                font-size: 0.82rem;
+            }
+
+            .offer-bonus {
+                font-size: 1rem;
+            }
+
+            .spend-figure {
+                font-size: clamp(1.8rem, 8vw, 2.2rem);
             }
 
             .benefits-row {
-                overflow-x: auto;
-                display: flex;
-                padding-bottom: 0.2rem;
+                --slide-gap: 0.4rem;
+            }
+
+            .benefits-slide {
+                min-height: 170px;
             }
 
             .benefit-card {
-                min-width: 110px;
+                min-width: 0;
+                aspect-ratio: auto;
+                min-height: 155px;
+            }
+
+            .benefit-title {
+                font-size: 0.64rem;
+                line-height: 1.3;
             }
         }
     </style>
@@ -433,49 +575,50 @@
 
 <div class="top-left-overlays">
     <div class="offer-overlay">
-        <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
-            <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
+        <wa-card id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
+            <h6 id="offerHeading" class="offer-header" slot="header">EXCLUSIVE WELCOME OFFER</h6>
             <div class="offer-body">
                 <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles</p>
                 <p class="offer-requirements">after $2,500 in purchases in the first 3 months</p>
             </div>
-        </article>
+        </wa-card>
     </div>
 
     <div class="apply-overlay">
-        <button class="btn apply-btn w-100">Apply Now</button>
+        <wa-button class="apply-btn">Apply Now</wa-button>
     </div>
 </div>
 
-<div class="visualizer-drawer shadow-lg" id="visualizerDrawer" aria-labelledby="visualizerDrawerLabel" aria-hidden="false">
-    <div class="offcanvas-body">
-                <button id="drawerToggle" type="button" class="drawer-toggle" aria-expanded="false" aria-controls="visualizerDrawer" aria-label="Open visualizer">+</button>
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
-                    <select id="originSelect" class="form-select">
-                        <option value="">Select Starting City...</option>
-                        <option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</option>
-                        <option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</option>
-                    </select>
+<wa-drawer class="visualizer-drawer" id="visualizerDrawer" placement="bottom" label="Plan Your Escape" open>
+    <div class="drawer-content">
+                <div class="field-group">
+                    <label for="originSelect" class="section-label section-title">Starting City</label>
+                    <wa-select id="originSelect" class="form-select" placeholder="Select Starting City..." value="JFK">
+                        <wa-option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</wa-option>
+                        <wa-option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</wa-option>
+                    </wa-select>
                 </div>
 
-                <p id="destinationsError" class="destinations-error d-none mt-0 mb-3">Destination data is temporarily unavailable. Please try again shortly.</p>
+                <p id="destinationsError" class="destinations-error is-hidden">Destination data is temporarily unavailable. Please try again shortly.</p>
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between spend-row">
-                        <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
+                <div class="spend-panel">
+                    <div class="spend-row">
+                        <span id="monthlySpendLabel" class="spend-value">Monthly Spend</span>
                         <span class="points-value" id="pointsVal">0 Points</span>
                     </div>
-                    <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
+                    <p class="spend-figure" aria-hidden="true"><span id="spendVal">$0</span></p>
+                    <wa-slider class="spend-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel"></wa-slider>
                 </div>
 
-                <div class="text-center mb-3">
-                    <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
-                    <div id="benefitsRow" class="benefits-row text-start"></div>
+                <div class="benefits-section">
+                    <h6 class="benefits-heading section-title">Destinations & Benefits</h6>
+                    <wa-carousel id="benefitsRow" class="benefits-row" slides-per-page="4" slides-per-move="1" mouse-dragging></wa-carousel>
                     <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                 </div>
     </div>
-</div>
+</wa-drawer>
+
+<wa-button id="drawerToggle" class="drawer-fab" aria-expanded="true" aria-controls="visualizerDrawer">Show Planner</wa-button>
 
 <script>
 const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
@@ -508,17 +651,25 @@ const benefitsRow = document.getElementById('benefitsRow');
 
 offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles`;
 
+function getSafeSliderValue() {
+    const parsedValue = Number(slider?.value);
+    if (Number.isFinite(parsedValue)) {
+        return parsedValue;
+    }
+    return config.offerSpendRequirement;
+}
+
+slider.value = String(Math.max(config.offerSpendRequirement, getSafeSliderValue()));
+
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
-    slider.value = config.offerSpendRequirement;
+    slider.value = String(config.offerSpendRequirement);
     updateUI(slider.value);
 });
 
-slider.addEventListener('input', (e) => {
-    const nextSpend = Math.max(config.offerSpendRequirement, Number(e.target.value));
-    if (nextSpend !== Number(e.target.value)) {
-        e.target.value = nextSpend;
-    }
+slider.addEventListener('input', () => {
+    const nextSpend = Math.max(config.offerSpendRequirement, getSafeSliderValue());
+    slider.value = String(nextSpend);
     updateUI(nextSpend);
 });
 
@@ -533,18 +684,20 @@ offerCard.addEventListener('keydown', (e) => {
 drawerToggle.addEventListener('click', toggleDrawer);
 
 function toggleDrawer() {
-    const expanded = visualizerDrawer.classList.toggle('drawer-expanded');
-    drawerToggle.innerText = expanded ? '-' : '+';
+    const expanded = !visualizerDrawer.open;
+    visualizerDrawer.open = expanded;
     drawerToggle.setAttribute('aria-expanded', String(expanded));
-    drawerToggle.setAttribute('aria-label', expanded ? 'Minimize visualizer' : 'Open visualizer');
 }
 
 if (!originSelect.value) {
-    const jfkOption = originSelect.querySelector('option[value="JFK"]');
+    const jfkOption = originSelect.querySelector('wa-option[value="JFK"]');
     if (jfkOption) {
         originSelect.value = "JFK";
-    } else if (originSelect.options.length > 1) {
-        originSelect.selectedIndex = 1;
+    } else {
+        const firstOption = originSelect.querySelector('wa-option');
+        if (firstOption?.value) {
+            originSelect.value = firstOption.value;
+        }
     }
 }
 
@@ -573,7 +726,7 @@ function renderBaseMap() {
     } else {
         projection.scale(projection.scale() * 2.2);
         const [translateX, translateY] = projection.translate();
-        projection.translate([translateX, translateY * 1.5]);
+        projection.translate([translateX, translateY * 1.3]);
     }
 
     svg.selectAll('.base-land').remove();
@@ -601,13 +754,13 @@ async function loadDestinations() {
         benefitItems = destinationData.filter(item => item.benefitType === 'destination' || item.benefitType === 'incentive');
         mixedBenefitItems = buildMixedBenefitOrder(benefitItems);
 
-        destinationsError.classList.add('d-none');
+        destinationsError.classList.add('is-hidden');
     } catch (error) {
         console.error('Failed to load destinations.json:', error);
         destinationOptions = [];
         benefitItems = [];
         mixedBenefitItems = [];
-        destinationsError.classList.remove('d-none');
+        destinationsError.classList.remove('is-hidden');
     }
     updateUI(slider.value);
 }
@@ -621,7 +774,9 @@ function toggleOffer() {
 
 function updateUI(spend) {
     if (!worldGeoJson) return;
-    const spendAmount = Math.max(config.offerSpendRequirement, Number(spend));
+    const parsedSpend = Number(spend);
+    const safeSpend = Number.isFinite(parsedSpend) ? parsedSpend : config.offerSpendRequirement;
+    const spendAmount = Math.max(config.offerSpendRequirement, safeSpend);
     const basePoints = spendAmount * config.multiplier * config.monthsInYear;
     const bonusPoints = offerApplied ? config.offerBonus : 0;
     const totalPoints = basePoints + bonusPoints;
@@ -634,7 +789,7 @@ function updateUI(spend) {
 
     // Clear and Redraw Arcs
     svg.selectAll(".flight-path, .destination-point").remove();
-    const selected = originSelect.options[originSelect.selectedIndex];
+    const selected = getSelectedOriginOption();
     if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
     let reachableCount = 0;
@@ -674,6 +829,11 @@ function updateUI(spend) {
     mapDescription.textContent = `${originLabel}. ${Math.round(totalPoints).toLocaleString()} points available. ${reachableCount} destinations reachable. ${bonusReachableCount} unlocked by bonus offer.`;
 }
 
+function getSelectedOriginOption() {
+    if (!originSelect?.value) return null;
+    return originSelect.querySelector(`wa-option[value="${originSelect.value}"]`);
+}
+
 function renderBenefits(totalPoints) {
     if (!benefitsRow) return;
     benefitsRow.innerHTML = '';
@@ -684,25 +844,30 @@ function renderBenefits(totalPoints) {
         const benefitLabel = item.benefitTitle || item.name || 'Benefit';
         const typeLabel = isIncentive ? 'Incentive' : 'Destination';
 
-        const card = document.createElement('article');
+        const slide = document.createElement('wa-carousel-item');
+        slide.className = 'benefits-slide';
+
+        const card = document.createElement('wa-card');
         card.className = `benefit-card ${isUnlocked ? 'benefit-unlocked' : ''}`;
         card.setAttribute('aria-label', `${benefitLabel} ${typeLabel}`);
 
         card.innerHTML = `
-            <div class="benefit-image" aria-hidden="true"></div>
-            <div class="benefit-meta">
-                <span class="benefit-type">${typeLabel}</span>
-                <span class="benefit-lock ${isUnlocked ? 'is-unlocked' : ''}" title="${isUnlocked ? 'Unlocked' : 'Locked'}">${isUnlocked ? '&#128275;' : '&#128274;'}</span>
+            <div class="benefit-media-wrap" slot="media">
+                <div class="benefit-image" aria-hidden="true"></div>
+                <span class="benefit-lock ${isUnlocked ? 'is-unlocked' : ''}" title="${isUnlocked ? 'Unlocked' : 'Locked'}" aria-label="${isUnlocked ? 'Unlocked' : 'Locked'}">
+                    <wa-icon name="${isUnlocked ? 'lock-open' : 'lock'}" aria-hidden="true"></wa-icon>
+                </span>
             </div>
-            <p class="benefit-title fw-semibold">${benefitLabel}</p>
+            <p class="benefit-title">${benefitLabel}</p>
         `;
 
-        benefitsRow.appendChild(card);
+        slide.appendChild(card);
+        benefitsRow.appendChild(slide);
     });
 }
 
 function buildMixedBenefitOrder(items) {
-    const destinations = shuffleItems(items.filter(item => item.benefitType === 'destination'));
+    const destinations = items.filter(item => item.benefitType === 'destination');
     const incentives = shuffleItems(items.filter(item => item.benefitType === 'incentive'));
 
     if (!incentives.length) return destinations;
@@ -743,6 +908,5 @@ function shuffleItems(items) {
 }
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

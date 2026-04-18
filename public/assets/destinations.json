@@ -1,21 +1,5 @@
 [
   {
-    "name": "Paris",
-    "benefitTitle": "Paris Getaway",
-    "benefitType": "destination",
-    "lat": 48.85,
-    "lon": 2.35,
-    "cost": 75000
-  },
-  {
-    "name": "London",
-    "benefitTitle": "London City Escape",
-    "benefitType": "destination",
-    "lat": 51.5,
-    "lon": -0.12,
-    "cost": 85000
-  },
-  {
     "name": "Miami",
     "benefitTitle": "Miami Beach Break",
     "benefitType": "destination",
@@ -24,20 +8,28 @@
     "cost": 60000
   },
   {
-    "name": "Tokyo",
-    "benefitTitle": "Tokyo Explorer",
+    "name": "Honolulu",
+    "benefitTitle": "Honolulu Island Time",
     "benefitType": "destination",
-    "lat": 35.68,
-    "lon": 139.69,
-    "cost": 95000
+    "lat": 21.31,
+    "lon": -157.86,
+    "cost": 72000
   },
   {
-    "name": "Sydney",
-    "benefitTitle": "Sydney Harbor Retreat",
+    "name": "Paris",
+    "benefitTitle": "Paris Getaway",
     "benefitType": "destination",
-    "lat": -33.87,
-    "lon": 151.21,
-    "cost": 120000
+    "lat": 48.85,
+    "lon": 2.35,
+    "cost": 75000
+  },
+  {
+    "name": "Barcelona",
+    "benefitTitle": "Barcelona Sun Trip",
+    "benefitType": "destination",
+    "lat": 41.38,
+    "lon": 2.17,
+    "cost": 76000
   },
   {
     "name": "Rome",
@@ -48,12 +40,36 @@
     "cost": 78000
   },
   {
-    "name": "Barcelona",
-    "benefitTitle": "Barcelona Sun Trip",
+    "name": "Reykjavik",
+    "benefitTitle": "Reykjavik Lights",
     "benefitType": "destination",
-    "lat": 41.38,
-    "lon": 2.17,
-    "cost": 76000
+    "lat": 64.15,
+    "lon": -21.94,
+    "cost": 82000
+  },
+  {
+    "name": "London",
+    "benefitTitle": "London City Escape",
+    "benefitType": "destination",
+    "lat": 51.5,
+    "lon": -0.12,
+    "cost": 85000
+  },
+  {
+    "name": "Buenos Aires",
+    "benefitTitle": "Buenos Aires Nights",
+    "benefitType": "destination",
+    "lat": -34.6,
+    "lon": -58.38,
+    "cost": 93000
+  },
+  {
+    "name": "Tokyo",
+    "benefitTitle": "Tokyo Explorer",
+    "benefitType": "destination",
+    "lat": 35.68,
+    "lon": 139.69,
+    "cost": 95000
   },
   {
     "name": "Dubai",
@@ -72,22 +88,6 @@
     "cost": 102000
   },
   {
-    "name": "Honolulu",
-    "benefitTitle": "Honolulu Island Time",
-    "benefitType": "destination",
-    "lat": 21.31,
-    "lon": -157.86,
-    "cost": 72000
-  },
-  {
-    "name": "Reykjavik",
-    "benefitTitle": "Reykjavik Lights",
-    "benefitType": "destination",
-    "lat": 64.15,
-    "lon": -21.94,
-    "cost": 82000
-  },
-  {
     "name": "Cape Town",
     "benefitTitle": "Cape Town Coastal Tour",
     "benefitType": "destination",
@@ -96,12 +96,12 @@
     "cost": 110000
   },
   {
-    "name": "Buenos Aires",
-    "benefitTitle": "Buenos Aires Nights",
+    "name": "Sydney",
+    "benefitTitle": "Sydney Harbor Retreat",
     "benefitType": "destination",
-    "lat": -34.6,
-    "lon": -58.38,
-    "cost": 93000
+    "lat": -33.87,
+    "lon": 151.21,
+    "cost": 120000
   },
   {
     "name": "Lounge",
