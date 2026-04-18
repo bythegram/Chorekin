@@ -15,25 +15,105 @@
             --soft-text: #5f6166;
             --track-bg: #dcdde1;
             --thumb-blue: #3463cf;
+            --map-ocean-top: #dbe4ef;
+            --map-ocean-bottom: #bac9db;
+            --map-land-fill: #c5d1e0;
+            --map-land-stroke: #6a7f99;
+            --route-base: #8e6f17;
+            --route-bonus: #12784d;
+            --destination-base: #8e6f17;
+            --destination-bonus: #12784d;
+            --destination-stroke: #f2f5f9;
         }
 
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #9ea3ad 0%, #d8dbe0 100%);
-        }
-
-        .modal-dialog {
-            max-width: 760px;
-        }
-
-        .modal-content {
-            border-radius: 26px;
-            border: 0;
             overflow: hidden;
-            background: var(--modal-bg);
         }
 
-        .modal-header {
+        .map-page {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        #map-holder {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, var(--map-ocean-top) 0%, var(--map-ocean-bottom) 100%);
+            border: 0;
+            border-radius: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        #worldMap {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .top-left-overlays {
+            position: fixed;
+            top: 1.25rem;
+            left: 1.25rem;
+            width: min(300px, calc(100vw - 2.5rem));
+            z-index: 1035;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .offer-overlay,
+        .apply-overlay {
+            width: 100%;
+        }
+
+        .visualizer-drawer {
+            --peek-height: 320px;
+            position: fixed;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            height: min(60vh, 600px);
+            border-top-left-radius: 26px;
+            border-top-right-radius: 26px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border: 0;
+            background: rgba(248, 248, 249, 0.1);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            visibility: visible;
+            transform: translateY(calc(100% - var(--peek-height)));
+            transition: transform 0.35s ease;
+            z-index: 1045;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualizer-drawer.drawer-expanded {
+            transform: translateY(0);
+        }
+
+        .drawer-toggle {
+            position: absolute;
+            top: 0.7rem;
+            right: 1rem;
+            width: auto;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--brand-navy);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.15rem 0.5rem;
+            line-height: 1;
+            font-size: 1.35rem;
+            z-index: 2;
+        }
+
+        .visualizer-drawer .offcanvas-header {
             padding: 1.5rem 1.5rem 0.5rem;
         }
 
@@ -49,8 +129,9 @@
             transform: scale(1.4);
         }
 
-        .modal-body {
-            padding: 0 1.5rem 1.6rem;
+        .visualizer-drawer .offcanvas-body {
+            padding: 2.35rem 1.5rem 1.6rem;
+            overflow-y: auto;
         }
 
         .section-label {
@@ -117,19 +198,9 @@
         }
 
         .map-offer-grid {
-            display: grid;
-            grid-template-columns: 2.2fr 1fr;
-            gap: 1rem;
+            display: block;
             margin-top: 0.4rem;
             margin-bottom: 1rem;
-        }
-
-        #map-holder {
-            background: linear-gradient(135deg, #eff1f5 0%, #d9dde4 100%);
-            border: 2px solid #b8bdc4;
-            border-radius: 12px;
-            height: 260px;
-            overflow: hidden;
         }
 
         .destinations-error {
@@ -141,11 +212,12 @@
 
         .flight-path {
             fill: none;
-            stroke: #b9a764;
+            stroke: var(--route-base);
             stroke-width: 4;
             stroke-dasharray: 8,8;
             opacity: 0;
             transition: opacity 0.45s, stroke 0.3s;
+            stroke-linecap: round;
         }
 
         .active-path {
@@ -153,11 +225,13 @@
         }
 
         .bonus-path {
-            stroke: #2f9d6f;
+            stroke: var(--route-bonus);
         }
 
         .destination-point {
-            fill: #b9a764;
+            fill: var(--destination-base);
+            stroke: var(--destination-stroke);
+            stroke-width: 1.2;
             opacity: 0.18;
             transition: opacity 0.3s, fill 0.3s;
         }
@@ -167,7 +241,7 @@
         }
 
         .bonus-destination {
-            fill: #2f9d6f;
+            fill: var(--destination-bonus);
             opacity: 1;
         }
 
@@ -274,16 +348,20 @@
         }
 
         @media (max-width: 576px) {
-            .modal-dialog {
-                margin: 0.75rem;
+            .visualizer-drawer {
+                border-top-left-radius: 18px;
+                border-top-right-radius: 18px;
+                --peek-height: 335px;
+            }
+
+            .top-left-overlays {
+                top: 5rem;
+                left: 0.75rem;
+                width: min(260px, calc(100vw - 1.5rem));
             }
 
             .modal-title {
                 font-size: 1.2rem;
-            }
-
-            .map-offer-grid {
-                grid-template-columns: 1fr;
             }
 
             .offer-bonus,
@@ -303,22 +381,36 @@
         }
     </style>
 </head>
-<body class="py-5">
+<body>
 
-<div class="text-center">
-    <button type="button" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#visualizerModal">
-        Launch Visualizer
-    </button>
+<main class="map-page" aria-label="Destination map">
+    <div id="map-holder">
+        <svg id="worldMap" width="100%" height="100%" role="img" aria-labelledby="mapTitle mapDesc" tabindex="0">
+            <title id="mapTitle">Destination reachability map</title>
+            <desc id="mapDesc">World map with flight paths from the selected origin and highlighted reachable destinations based on your points.</desc>
+        </svg>
+    </div>
+</main>
+
+<div class="top-left-overlays">
+    <div class="offer-overlay">
+        <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
+            <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
+            <div class="offer-body">
+                <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
+                <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
+            </div>
+        </article>
+    </div>
+
+    <div class="apply-overlay">
+        <button class="btn apply-btn w-100">Apply Now</button>
+    </div>
 </div>
 
-<div class="modal fade" id="visualizerModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header border-0">
-                <h5 class="modal-title w-100 text-center text-uppercase">The Destination Visualizer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
+<div class="visualizer-drawer shadow-lg" id="visualizerDrawer" aria-labelledby="visualizerDrawerLabel" aria-hidden="false">
+    <div class="offcanvas-body">
+                <button id="drawerToggle" type="button" class="drawer-toggle" aria-expanded="false" aria-controls="visualizerDrawer" aria-label="Open visualizer">+</button>
                 <div class="mb-3">
                     <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
                     <select id="originSelect" class="form-select">
@@ -336,21 +428,7 @@
                     <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
                 </div>
 
-                <div class="map-offer-grid">
-                    <div>
-                        <div id="map-holder">
-                            <svg id="worldMap" width="100%" height="100%"></svg>
-                        </div>
-                        <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
-                    </div>
-                    <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
-                        <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
-                        <div class="offer-body">
-                            <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
-                            <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
-                        </div>
-                    </article>
-                </div>
+                <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
 
                 <div class="text-center mb-3">
                     <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
@@ -373,10 +451,7 @@
                         </article>
                     </div>
                     <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    <button class="btn apply-btn w-100">Apply Now</button>
                 </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -384,20 +459,17 @@
 const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
 let destinations = [];
 let offerApplied = false;
+let worldGeoJson = null;
 
 // Initialize D3 Map
 const svg = d3.select("#worldMap");
-const projection = d3.geoMercator().scale(70).translate([200, 180]);
+const projection = d3.geoMercator();
 const path = d3.geoPath().projection(projection);
 
 d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(data => {
-    svg.append("g")
-       .selectAll("path")
-       .data(data.features)
-       .enter().append("path")
-       .attr("d", path)
-       .attr("fill", "#e9ecef")
-       .attr("stroke", "#fff");
+    worldGeoJson = data;
+    renderBaseMap();
+    updateUI(slider.value);
 });
 
 const slider = document.getElementById('spendSlider');
@@ -405,6 +477,9 @@ const originSelect = document.getElementById('originSelect');
 const offerCard = document.getElementById('offerCard');
 const destinationsError = document.getElementById('destinationsError');
 const offerBonusText = document.getElementById('offerBonusText');
+const visualizerDrawer = document.getElementById('visualizerDrawer');
+const drawerToggle = document.getElementById('drawerToggle');
+const mapDescription = document.getElementById('mapDesc');
 
 offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles Offer`;
 
@@ -430,6 +505,15 @@ offerCard.addEventListener('keydown', (e) => {
     }
 });
 
+drawerToggle.addEventListener('click', toggleDrawer);
+
+function toggleDrawer() {
+    const expanded = visualizerDrawer.classList.toggle('drawer-expanded');
+    drawerToggle.innerText = expanded ? '-' : '+';
+    drawerToggle.setAttribute('aria-expanded', String(expanded));
+    drawerToggle.setAttribute('aria-label', expanded ? 'Minimize visualizer' : 'Open visualizer');
+}
+
 if (!originSelect.value) {
     const jfkOption = originSelect.querySelector('option[value="JFK"]');
     if (jfkOption) {
@@ -440,10 +524,48 @@ if (!originSelect.value) {
 }
 
 loadDestinations();
+window.addEventListener('resize', handleResize);
+
+function handleResize() {
+    if (!worldGeoJson) return;
+    renderBaseMap();
+    updateUI(slider.value);
+}
+
+function renderBaseMap() {
+    const mapHolder = document.getElementById('map-holder');
+    const width = mapHolder.clientWidth;
+    const height = mapHolder.clientHeight;
+    const isNarrowViewport = window.matchMedia('(max-width: 768px)').matches;
+
+    svg.attr('viewBox', `0 0 ${width} ${height}`);
+    projection.fitExtent([[20, 20], [width - 20, height - 20]], worldGeoJson);
+
+    if (isNarrowViewport) {
+        projection.center([-100, 40]);
+        projection.scale(projection.scale() * 2.9);
+        projection.translate([width * 0.52, height * 0.62]);
+    } else {
+        projection.scale(projection.scale() * 2.2);
+        const [translateX, translateY] = projection.translate();
+        projection.translate([translateX, translateY * 1.5]);
+    }
+
+    svg.selectAll('.base-land').remove();
+    svg.append('g')
+       .attr('class', 'base-land')
+       .selectAll('path')
+       .data(worldGeoJson.features)
+       .enter().append('path')
+       .attr('d', path)
+         .attr('fill', getComputedStyle(document.documentElement).getPropertyValue('--map-land-fill').trim())
+         .attr('stroke', getComputedStyle(document.documentElement).getPropertyValue('--map-land-stroke').trim())
+         .attr('stroke-width', 0.7);
+}
 
 async function loadDestinations() {
     try {
-        const response = await fetch('./destinations.json');
+        const response = await fetch('./trip-planner/destinations.json');
         if (!response.ok) {
             throw new Error('Unable to load destinations');
         }
@@ -465,6 +587,7 @@ function toggleOffer() {
 }
 
 function updateUI(spend) {
+    if (!worldGeoJson) return;
     const spendAmount = Math.max(config.offerSpendRequirement, Number(spend));
     const basePoints = spendAmount * config.multiplier * config.monthsInYear;
     const bonusPoints = offerApplied ? config.offerBonus : 0;
@@ -479,13 +602,22 @@ function updateUI(spend) {
     const selected = originSelect.options[originSelect.selectedIndex];
     if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
+    let reachableCount = 0;
+    let bonusReachableCount = 0;
 
     destinations.forEach(d => {
         const baseReachable = basePoints >= d.cost;
         const reachable = totalPoints >= d.cost;
         const newlyReachable = offerApplied && !baseReachable && reachable;
-        const opacity = reachable ? 1 : 0.1;
+        const opacity = reachable ? 1 : 0.2;
         const link = {type: "LineString", coordinates: [originCoords, [d.lon, d.lat]]};
+
+        if (reachable) {
+            reachableCount += 1;
+        }
+        if (newlyReachable) {
+            bonusReachableCount += 1;
+        }
 
         svg.append("path")
            .attr("d", path(link))
@@ -500,8 +632,11 @@ function updateUI(spend) {
            .attr("class", `destination-point ${reachable ? 'reachable-destination' : ''} ${newlyReachable ? 'bonus-destination' : ''}`)
            .attr("cx", destinationCoords[0])
            .attr("cy", destinationCoords[1])
-           .attr("r", 3.5);
+           .attr("r", 4.3);
     });
+
+    const originLabel = selected.textContent?.trim() || 'selected origin';
+    mapDescription.textContent = `${originLabel}. ${Math.round(totalPoints).toLocaleString()} points available. ${reachableCount} destinations reachable. ${bonusReachableCount} unlocked by bonus offer.`;
 }
 </script>
 
