@@ -346,7 +346,7 @@
                     <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
                         <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
                         <div class="offer-body">
-                            <p class="offer-bonus">80,000 Bonus Miles Offer</p>
+                            <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
                             <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
                         </div>
                     </article>
@@ -381,7 +381,7 @@
 </div>
 
 <script>
-const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500 };
+const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
 let destinations = [];
 let offerApplied = false;
 
@@ -404,6 +404,9 @@ const slider = document.getElementById('spendSlider');
 const originSelect = document.getElementById('originSelect');
 const offerCard = document.getElementById('offerCard');
 const destinationsError = document.getElementById('destinationsError');
+const offerBonusText = document.getElementById('offerBonusText');
+
+offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles Offer`;
 
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
@@ -463,7 +466,7 @@ function toggleOffer() {
 
 function updateUI(spend) {
     const spendAmount = Math.max(config.offerSpendRequirement, Number(spend));
-    const basePoints = spendAmount * config.multiplier * 12;
+    const basePoints = spendAmount * config.multiplier * config.monthsInYear;
     const bonusPoints = offerApplied ? config.offerBonus : 0;
     const totalPoints = basePoints + bonusPoints;
 
