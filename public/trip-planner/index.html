@@ -589,14 +589,11 @@
     </div>
 </div>
 
-<wa-drawer class="visualizer-drawer" id="visualizerDrawer" placement="bottom" label="Plan Your Escape" open>
+<wa-drawer class="visualizer-drawer" light-dismiss="false" id="visualizerDrawer" placement="bottom" label="Plan Your Escape" open>
     <div class="drawer-content">
                 <div class="field-group">
                     <label for="originSelect" class="section-label section-title">Starting City</label>
-                    <wa-select id="originSelect" class="form-select" placeholder="Select Starting City..." value="JFK">
-                        <wa-option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</wa-option>
-                        <wa-option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</wa-option>
-                    </wa-select>
+                    <wa-select id="originSelect" class="form-select" placeholder="Select Starting City..."></wa-select>
                 </div>
 
                 <p id="destinationsError" class="destinations-error is-hidden">Destination data is temporarily unavailable. Please try again shortly.</p>
@@ -621,10 +618,18 @@
 <wa-button id="drawerToggle" class="drawer-fab" aria-expanded="true" aria-controls="visualizerDrawer">Show Planner</wa-button>
 
 <script>
-const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
+const config = {
+    offerBonus: 80000,
+    multiplier: 1.5,
+    offerSpendRequirement: 2500,
+    monthsInYear: 12,
+    // Points cost model for destination redemptions based on trip distance.
+    distanceCostBase: 40000,
+    pointsPerKm: 5
+};
 let destinationOptions = [];
+let originOptions = [];
 let benefitItems = [];
-let mixedBenefitItems = [];
 let offerApplied = false;
 let worldGeoJson = null;
 
@@ -689,18 +694,6 @@ function toggleDrawer() {
     drawerToggle.setAttribute('aria-expanded', String(expanded));
 }
 
-if (!originSelect.value) {
-    const jfkOption = originSelect.querySelector('wa-option[value="JFK"]');
-    if (jfkOption) {
-        originSelect.value = "JFK";
-    } else {
-        const firstOption = originSelect.querySelector('wa-option');
-        if (firstOption?.value) {
-            originSelect.value = firstOption.value;
-        }
-    }
-}
-
 loadDestinations();
 window.addEventListener('resize', handleResize);
 
@@ -750,19 +743,60 @@ async function loadDestinations() {
         const loadedData = await response.json();
         const destinationData = Array.isArray(loadedData) ? loadedData : [];
 
-        destinationOptions = destinationData.filter(item => item.benefitType === 'destination');
-        benefitItems = destinationData.filter(item => item.benefitType === 'destination' || item.benefitType === 'incentive');
-        mixedBenefitItems = buildMixedBenefitOrder(benefitItems);
+        originOptions = destinationData.filter(item => getItemType(item) === 'origin');
+        destinationOptions = destinationData.filter(item => getItemType(item) === 'destination');
+        benefitItems = destinationData.filter(item => {
+            const itemType = getItemType(item);
+            return itemType === 'destination' || itemType === 'incentive';
+        });
+
+        populateOriginSelect(originOptions);
 
         destinationsError.classList.add('is-hidden');
     } catch (error) {
         console.error('Failed to load destinations.json:', error);
+        originOptions = [];
         destinationOptions = [];
         benefitItems = [];
-        mixedBenefitItems = [];
+        populateOriginSelect([]);
         destinationsError.classList.remove('is-hidden');
     }
     updateUI(slider.value);
+}
+
+function getItemType(item) {
+    if (typeof item?.type === 'string') {
+        return item.type.toLowerCase();
+    }
+    if (typeof item?.benefitType === 'string') {
+        return item.benefitType.toLowerCase();
+    }
+    return '';
+}
+
+function populateOriginSelect(origins) {
+    originSelect.innerHTML = '';
+
+    origins.forEach(origin => {
+        const option = document.createElement('wa-option');
+        const optionValue = origin.code || origin.name;
+        const optionLabel = origin.label || origin.benefitTitle || origin.name || optionValue;
+
+        option.value = optionValue;
+        option.dataset.lat = String(origin.lat);
+        option.dataset.lon = String(origin.lon);
+        option.textContent = optionLabel;
+        originSelect.appendChild(option);
+    });
+
+    const jfkOption = originSelect.querySelector('wa-option[value="JFK"]');
+    const firstOption = originSelect.querySelector('wa-option');
+
+    if (jfkOption?.value) {
+        originSelect.value = jfkOption.value;
+    } else if (!originSelect.value && firstOption?.value) {
+        originSelect.value = firstOption.value;
+    }
 }
 
 function toggleOffer() {
@@ -785,19 +819,22 @@ function updateUI(spend) {
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
     slider.setAttribute("aria-valuenow", Math.round(spendAmount));
 
-    renderBenefits(totalPoints);
-
-    // Clear and Redraw Arcs
-    svg.selectAll(".flight-path, .destination-point").remove();
     const selected = getSelectedOriginOption();
     if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
+    const dynamicCosts = buildDynamicDestinationCosts(originCoords);
+
+    renderBenefits(totalPoints, dynamicCosts);
+
+    // Clear and Redraw Arcs
+    svg.selectAll(".flight-path, .destination-point").remove();
     let reachableCount = 0;
     let bonusReachableCount = 0;
 
     destinationOptions.forEach(d => {
-        const baseReachable = basePoints >= d.cost;
-        const reachable = totalPoints >= d.cost;
+        const destinationCost = dynamicCosts[getDestinationKey(d)] ?? Number(d.cost || 0);
+        const baseReachable = basePoints >= destinationCost;
+        const reachable = totalPoints >= destinationCost;
         const newlyReachable = offerApplied && !baseReachable && reachable;
         const opacity = reachable ? 1 : 0.2;
         const link = {type: "LineString", coordinates: [originCoords, [d.lon, d.lat]]};
@@ -834,13 +871,18 @@ function getSelectedOriginOption() {
     return originSelect.querySelector(`wa-option[value="${originSelect.value}"]`);
 }
 
-function renderBenefits(totalPoints) {
+function renderBenefits(totalPoints, destinationCosts = {}) {
     if (!benefitsRow) return;
     benefitsRow.innerHTML = '';
+    const orderedItems = getDistanceOrderedBenefits(destinationCosts);
 
-    mixedBenefitItems.forEach(item => {
-        const isIncentive = item.benefitType === 'incentive';
-        const isUnlocked = isIncentive || totalPoints >= Number(item.cost || 0);
+    orderedItems.forEach(item => {
+        const isIncentive = getItemType(item) === 'incentive';
+        const isDestination = getItemType(item) === 'destination';
+        const destinationCost = isDestination
+            ? destinationCosts[getDestinationKey(item)] ?? Number(item.cost || 0)
+            : Number(item.cost || 0);
+        const isUnlocked = isIncentive || totalPoints >= destinationCost;
         const benefitLabel = item.benefitTitle || item.name || 'Benefit';
         const typeLabel = isIncentive ? 'Incentive' : 'Destination';
 
@@ -866,10 +908,20 @@ function renderBenefits(totalPoints) {
     });
 }
 
-function buildMixedBenefitOrder(items) {
-    const destinations = items.filter(item => item.benefitType === 'destination');
-    const incentives = shuffleItems(items.filter(item => item.benefitType === 'incentive'));
+function getDistanceOrderedBenefits(destinationCosts) {
+    const sortedDestinations = destinationOptions
+        .slice()
+        .sort((a, b) => {
+            const costA = destinationCosts[getDestinationKey(a)] ?? Number(a.cost || 0);
+            const costB = destinationCosts[getDestinationKey(b)] ?? Number(b.cost || 0);
+            return costA - costB;
+        });
 
+    const incentives = benefitItems.filter(item => getItemType(item) === 'incentive');
+    return interleaveBenefits(sortedDestinations, incentives);
+}
+
+function interleaveBenefits(destinations, incentives) {
     if (!incentives.length) return destinations;
     if (!destinations.length) return incentives;
 
@@ -896,15 +948,33 @@ function buildMixedBenefitOrder(items) {
     return mixed;
 }
 
-function shuffleItems(items) {
-    const shuffled = [...items];
+function buildDynamicDestinationCosts(originCoords) {
+    return destinationOptions.reduce((acc, destination) => {
+        if (!Number.isFinite(destination?.lon) || !Number.isFinite(destination?.lat)) {
+            acc[getDestinationKey(destination)] = Number(destination.cost || 0);
+            return acc;
+        }
 
-    for (let i = shuffled.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+        const distanceKm = haversineDistanceKm(originCoords, [destination.lon, destination.lat]);
+        const dynamicCost = Math.round((config.distanceCostBase + (distanceKm * config.pointsPerKm)) / 100) * 100;
+        acc[getDestinationKey(destination)] = dynamicCost;
+        return acc;
+    }, {});
+}
 
-    return shuffled;
+function getDestinationKey(item) {
+    return `${item.name || 'destination'}:${item.lat || 0}:${item.lon || 0}`;
+}
+
+function haversineDistanceKm([lon1, lat1], [lon2, lat2]) {
+    const toRadians = degrees => degrees * (Math.PI / 180);
+    const earthRadiusKm = 6371;
+    const latDelta = toRadians(lat2 - lat1);
+    const lonDelta = toRadians(lon2 - lon1);
+    const a = Math.sin(latDelta / 2) ** 2
+        + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(lonDelta / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
 }
 </script>
 
