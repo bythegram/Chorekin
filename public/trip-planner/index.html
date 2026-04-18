@@ -11,13 +11,18 @@
         :root {
             --brand-navy: #15203f;
             --soft-border: #cfd2d8;
-            --drawer-bg: rgba(248, 248, 249, 0.8);
+            --drawer-bg-color: rgba(248, 248, 249, 0.8);
             --soft-text: #5f6166;
             --track-bg: #dcdde1;
             --thumb-blue: #3463cf;
+            /* Keep drawer open by default while preserving substantial visible map area. */
+            --drawer-max-height-vh: 72vh;
+            --drawer-max-height-px: 640px;
+            --drawer-max-height-mobile: 78vh;
         }
 
         body {
+            min-height: 100vh;
             min-height: 100dvh;
             margin: 0;
             overflow: hidden;
@@ -27,6 +32,7 @@
             position: fixed;
             inset: 0;
             width: 100vw;
+            height: 100vh;
             height: 100dvh;
             overflow: hidden;
             background: linear-gradient(135deg, #eff1f5 0%, #d9dde4 100%);
@@ -44,9 +50,9 @@
             right: 0;
             bottom: 0;
             z-index: 10;
-            max-height: min(72vh, 640px);
+            max-height: min(var(--drawer-max-height-vh), var(--drawer-max-height-px));
             border-radius: 26px 26px 0 0;
-            background: var(--drawer-bg);
+            background: var(--drawer-bg-color);
             backdrop-filter: blur(10px);
             box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.2);
             border-top: 1px solid rgba(255, 255, 255, 0.6);
@@ -289,7 +295,7 @@
             }
 
             .planner-drawer {
-                max-height: 78vh;
+                max-height: var(--drawer-max-height-mobile);
             }
 
             .offer-bonus,
@@ -310,99 +316,104 @@
     </style>
 </head>
 <body>
+<main>
 <div id="map-holder">
-    <svg id="worldMap" width="100%" height="100%"></svg>
+    <svg id="worldMap" width="100%" height="100%" role="img" aria-labelledby="mapTitle" aria-describedby="mapDescription">
+        <title id="mapTitle">World map showing travel destinations</title>
+    </svg>
+    <p id="mapDescription" class="visually-hidden">The map highlights reachable destinations and flight paths from the selected starting city.</p>
 </div>
 
-<section class="planner-drawer" aria-label="Trip planner drawer">
-            <div class="drawer-header border-0">
-                <h1 class="drawer-title text-uppercase">The Destination Visualizer</h1>
+<section class="planner-drawer" aria-labelledby="drawerTitle">
+    <header class="drawer-header border-0">
+        <h2 id="drawerTitle" class="drawer-title text-uppercase">The Destination Visualizer</h2>
+    </header>
+    <div class="drawer-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
+            <select id="originSelect" class="form-select">
+                <option value="">Select Starting City...</option>
+                <option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</option>
+                <option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-between spend-row">
+                <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
+                <span class="points-value" id="pointsVal">0 Points</span>
             </div>
-            <div class="drawer-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-uppercase section-label">Plan Your Escape</label>
-                    <select id="originSelect" class="form-select">
-                        <option value="">Select Starting City...</option>
-                        <option value="JFK" data-lat="40.71" data-lon="-74.00">New York (JFK)</option>
-                        <option value="LAX" data-lat="34.05" data-lon="-118.24">Los Angeles (LAX)</option>
-                    </select>
-                </div>
+            <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
+        </div>
+                <p id="destinationsError" class="destinations-error d-none" role="alert" aria-live="polite">Trip planner data is temporarily unavailable. Please try again shortly.</p>
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between spend-row">
-                        <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
-                        <span class="points-value" id="pointsVal">0 Points</span>
-                    </div>
-                    <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
+        <div class="map-offer-grid">
+            <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
+                <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
+                <div class="offer-body">
+                    <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
+                    <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
                 </div>
-                <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
+            </article>
+        </div>
 
-                <div class="map-offer-grid">
-                    <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
-                        <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
-                        <div class="offer-body">
-                            <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
-                            <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
-                        </div>
-                    </article>
-                </div>
-
-                <div class="text-center mb-3">
-                    <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
-                    <div class="benefits-row text-start">
-                        <article class="benefit-card" aria-label="Paris Getaway destination">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Paris<br>Getaway</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Tokyo Explorer destination">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Tokyo<br>Explorer</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Airport Lounge Access benefit">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Airport<br>Lounge Access</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Priority Boarding benefit">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
-                        </article>
-                    </div>
-                    <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    <button class="btn apply-btn w-100">Apply Now</button>
-                </div>
+        <div class="text-center mb-3">
+            <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
+            <div class="benefits-row text-start">
+                <article class="benefit-card" aria-label="Paris Getaway destination">
+                    <div class="benefit-image" aria-hidden="true"></div>
+                    <p class="benefit-title fw-semibold">Paris<br>Getaway</p>
+                </article>
+                <article class="benefit-card" aria-label="Tokyo Explorer destination">
+                    <div class="benefit-image" aria-hidden="true"></div>
+                    <p class="benefit-title fw-semibold">Tokyo<br>Explorer</p>
+                </article>
+                <article class="benefit-card" aria-label="Airport Lounge Access benefit">
+                    <div class="benefit-image" aria-hidden="true"></div>
+                    <p class="benefit-title fw-semibold">Airport<br>Lounge Access</p>
+                </article>
+                <article class="benefit-card" aria-label="Priority Boarding benefit">
+                    <div class="benefit-image" aria-hidden="true"></div>
+                    <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
+                </article>
             </div>
+            <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            <button class="btn apply-btn w-100">Apply Now</button>
+        </div>
+    </div>
 </section>
+</main>
 
 <script>
 const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
+// Keep world geometry 18px away from edges so destination points and arcs remain visible.
+const MAP_EDGE_PADDING = 18;
 let destinations = [];
 let offerApplied = false;
 
 // Initialize D3 Map
 const mapHolder = document.getElementById("map-holder");
 const svg = d3.select("#worldMap");
+const worldLayer = svg.append("g").attr("class", "world-land");
 const projection = d3.geoMercator();
 const path = d3.geoPath().projection(projection);
 let worldGeoJson;
+let resizeRequestId;
 
 function renderWorldMap() {
     if (!worldGeoJson) return;
-    svg.selectAll(".world-land").remove();
-    svg.append("g")
-       .attr("class", "world-land")
-       .selectAll("path")
-       .data(worldGeoJson.features)
-       .enter()
-       .append("path")
-       .attr("d", path);
+    worldLayer.selectAll("path")
+        .data(worldGeoJson.features)
+        .join("path")
+        .attr("d", path);
 }
 
 function resizeMap() {
-    const width = mapHolder.clientWidth || window.innerWidth;
-    const height = mapHolder.clientHeight || window.innerHeight;
+    const width = mapHolder.clientWidth;
+    const height = mapHolder.clientHeight;
     if (!width || !height || !worldGeoJson) return;
     svg.attr("viewBox", `0 0 ${width} ${height}`);
-    projection.fitExtent([[18, 18], [width - 18, height - 18]], worldGeoJson);
+    projection.fitExtent([[MAP_EDGE_PADDING, MAP_EDGE_PADDING], [width - MAP_EDGE_PADDING, height - MAP_EDGE_PADDING]], worldGeoJson);
     renderWorldMap();
     updateUI(slider.value);
 }
@@ -412,6 +423,8 @@ d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/w
     resizeMap();
 }).catch(error => {
     console.error('Failed to load world map data:', error);
+    destinationsError.classList.remove('d-none');
+    destinationsError.innerText = 'Trip planner data is temporarily unavailable. Please try again shortly.';
 });
 
 const slider = document.getElementById('spendSlider');
@@ -420,7 +433,15 @@ const offerCard = document.getElementById('offerCard');
 const destinationsError = document.getElementById('destinationsError');
 const offerBonusText = document.getElementById('offerBonusText');
 
-window.addEventListener('resize', resizeMap);
+window.addEventListener('resize', () => {
+    if (resizeRequestId) {
+        cancelAnimationFrame(resizeRequestId);
+    }
+    resizeRequestId = requestAnimationFrame(() => {
+        resizeRequestId = null;
+        resizeMap();
+    });
+});
 
 offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles Offer`;
 
