@@ -400,7 +400,13 @@ originSelect.addEventListener('change', (e) => {
     updateUI(slider.value);
 });
 
-slider.addEventListener('input', (e) => updateUI(e.target.value));
+slider.addEventListener('input', (e) => {
+    const nextSpend = Math.max(config.offerSpendRequirement, Number(e.target.value));
+    if (nextSpend !== Number(e.target.value)) {
+        e.target.value = nextSpend;
+    }
+    updateUI(nextSpend);
+});
 
 offerCard.addEventListener('click', toggleOffer);
 offerCard.addEventListener('keydown', (e) => {
@@ -429,6 +435,7 @@ async function loadDestinations() {
         }
         destinations = await response.json();
     } catch (error) {
+        console.error('Failed to load destinations.json:', error);
         destinations = [];
     }
     updateUI(slider.value);
@@ -442,15 +449,14 @@ function toggleOffer() {
 }
 
 function updateUI(spend) {
-    const spendAmount = Number(spend);
+    const spendAmount = Math.max(config.offerSpendRequirement, Number(spend));
     const basePoints = spendAmount * config.multiplier * 12;
     const bonusPoints = offerApplied ? config.offerBonus : 0;
     const totalPoints = basePoints + bonusPoints;
 
-    document.getElementById('spendVal').innerText = `$${Math.round(spend)}`;
+    document.getElementById('spendVal').innerText = `$${Math.round(spendAmount)}`;
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
-    slider.setAttribute("aria-valuenow", Math.round(spend));
-    slider.value = Math.max(config.offerSpendRequirement, Math.round(spendAmount / 100) * 100);
+    slider.setAttribute("aria-valuenow", Math.round(spendAmount));
 
     // Clear and Redraw Arcs
     svg.selectAll(".flight-path, .destination-point").remove();
