@@ -590,7 +590,7 @@ function renderBaseMap() {
 
 async function loadDestinations() {
     try {
-        const response = await fetch('./trip-planner/destinations.json');
+        const response = await fetch('../assets/destinations.json');
         if (!response.ok) {
             throw new Error('Unable to load destinations');
         }
