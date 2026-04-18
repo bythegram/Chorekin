@@ -1,15 +1,130 @@
 [
-  { "name": "Paris", "lat": 48.85, "lon": 2.35, "cost": 75000 },
-  { "name": "London", "lat": 51.5, "lon": -0.12, "cost": 85000 },
-  { "name": "Miami", "lat": 25.76, "lon": -80.19, "cost": 60000 },
-  { "name": "Tokyo", "lat": 35.68, "lon": 139.69, "cost": 95000 },
-  { "name": "Sydney", "lat": -33.87, "lon": 151.21, "cost": 120000 },
-  { "name": "Rome", "lat": 41.9, "lon": 12.5, "cost": 78000 },
-  { "name": "Barcelona", "lat": 41.38, "lon": 2.17, "cost": 76000 },
-  { "name": "Dubai", "lat": 25.2, "lon": 55.27, "cost": 98000 },
-  { "name": "Singapore", "lat": 1.29, "lon": 103.85, "cost": 102000 },
-  { "name": "Honolulu", "lat": 21.31, "lon": -157.86, "cost": 72000 },
-  { "name": "Reykjavik", "lat": 64.15, "lon": -21.94, "cost": 82000 },
-  { "name": "Cape Town", "lat": -33.92, "lon": 18.42, "cost": 110000 },
-  { "name": "Buenos Aires", "lat": -34.6, "lon": -58.38, "cost": 93000 }
+  {
+    "name": "Paris",
+    "benefitTitle": "Paris Getaway",
+    "benefitType": "destination",
+    "lat": 48.85,
+    "lon": 2.35,
+    "cost": 75000
+  },
+  {
+    "name": "London",
+    "benefitTitle": "London City Escape",
+    "benefitType": "destination",
+    "lat": 51.5,
+    "lon": -0.12,
+    "cost": 85000
+  },
+  {
+    "name": "Miami",
+    "benefitTitle": "Miami Beach Break",
+    "benefitType": "destination",
+    "lat": 25.76,
+    "lon": -80.19,
+    "cost": 60000
+  },
+  {
+    "name": "Tokyo",
+    "benefitTitle": "Tokyo Explorer",
+    "benefitType": "destination",
+    "lat": 35.68,
+    "lon": 139.69,
+    "cost": 95000
+  },
+  {
+    "name": "Sydney",
+    "benefitTitle": "Sydney Harbor Retreat",
+    "benefitType": "destination",
+    "lat": -33.87,
+    "lon": 151.21,
+    "cost": 120000
+  },
+  {
+    "name": "Rome",
+    "benefitTitle": "Rome Weekend",
+    "benefitType": "destination",
+    "lat": 41.9,
+    "lon": 12.5,
+    "cost": 78000
+  },
+  {
+    "name": "Barcelona",
+    "benefitTitle": "Barcelona Sun Trip",
+    "benefitType": "destination",
+    "lat": 41.38,
+    "lon": 2.17,
+    "cost": 76000
+  },
+  {
+    "name": "Dubai",
+    "benefitTitle": "Dubai Skyline Stay",
+    "benefitType": "destination",
+    "lat": 25.2,
+    "lon": 55.27,
+    "cost": 98000
+  },
+  {
+    "name": "Singapore",
+    "benefitTitle": "Singapore Stopover",
+    "benefitType": "destination",
+    "lat": 1.29,
+    "lon": 103.85,
+    "cost": 102000
+  },
+  {
+    "name": "Honolulu",
+    "benefitTitle": "Honolulu Island Time",
+    "benefitType": "destination",
+    "lat": 21.31,
+    "lon": -157.86,
+    "cost": 72000
+  },
+  {
+    "name": "Reykjavik",
+    "benefitTitle": "Reykjavik Lights",
+    "benefitType": "destination",
+    "lat": 64.15,
+    "lon": -21.94,
+    "cost": 82000
+  },
+  {
+    "name": "Cape Town",
+    "benefitTitle": "Cape Town Coastal Tour",
+    "benefitType": "destination",
+    "lat": -33.92,
+    "lon": 18.42,
+    "cost": 110000
+  },
+  {
+    "name": "Buenos Aires",
+    "benefitTitle": "Buenos Aires Nights",
+    "benefitType": "destination",
+    "lat": -34.6,
+    "lon": -58.38,
+    "cost": 93000
+  },
+  {
+    "name": "Lounge",
+    "benefitTitle": "Airport Lounge Access",
+    "benefitType": "incentive",
+    "cost": 0
+  },
+  {
+    "name": "Boarding",
+    "benefitTitle": "Priority Boarding",
+    "benefitType": "incentive",
+    "cost": 0
+  },
+  {
+    "name": "Waiver",
+    "benefitTitle": "First Checked Bag Waived",
+    "benefitType": "incentive",
+    "cost": 0
+  },
+  {
+    "name": "Support",
+    "benefitTitle": "24-7 Travel Support",
+    "benefitType": "incentive",
+    "cost": 0
+  }
 ]

@@ -315,12 +315,51 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
 
+        .benefit-card.benefit-unlocked {
+            border-color: #2f9d6f;
+            box-shadow: 0 2px 6px rgba(47, 157, 111, 0.22);
+        }
+
         .benefit-image {
             width: 100%;
             height: 44px;
             border-radius: 8px;
             margin-bottom: 0.25rem;
             background: linear-gradient(130deg, #d9dce2 0%, #b0bdd8 100%);
+        }
+
+        .benefit-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            gap: 0.3rem;
+        }
+
+        .benefit-type {
+            font-size: 0.52rem;
+            line-height: 1;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: #3e4958;
+        }
+
+        .benefit-lock {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            line-height: 1;
+            background: #d8dae0;
+            color: #4f5664;
+        }
+
+        .benefit-lock.is-unlocked {
+            background: #dbefe5;
+            color: #147548;
         }
 
         .benefit-title {
@@ -432,24 +471,7 @@
 
                 <div class="text-center mb-3">
                     <h6 class="fw-bold text-uppercase benefits-heading text-start">Suggested Destinations & Benefits</h6>
-                    <div class="benefits-row text-start">
-                        <article class="benefit-card" aria-label="Paris Getaway destination">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Paris<br>Getaway</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Tokyo Explorer destination">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Tokyo<br>Explorer</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Airport Lounge Access benefit">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Airport<br>Lounge Access</p>
-                        </article>
-                        <article class="benefit-card" aria-label="Priority Boarding benefit">
-                            <div class="benefit-image" aria-hidden="true"></div>
-                            <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
-                        </article>
-                    </div>
+                    <div id="benefitsRow" class="benefits-row text-start"></div>
                     <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                 </div>
     </div>
@@ -457,7 +479,9 @@
 
 <script>
 const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
-let destinations = [];
+let destinationOptions = [];
+let benefitItems = [];
+let mixedBenefitItems = [];
 let offerApplied = false;
 let worldGeoJson = null;
 
@@ -480,6 +504,7 @@ const offerBonusText = document.getElementById('offerBonusText');
 const visualizerDrawer = document.getElementById('visualizerDrawer');
 const drawerToggle = document.getElementById('drawerToggle');
 const mapDescription = document.getElementById('mapDesc');
+const benefitsRow = document.getElementById('benefitsRow');
 
 offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles`;
 
@@ -565,15 +590,23 @@ function renderBaseMap() {
 
 async function loadDestinations() {
     try {
-        const response = await fetch('./destinations.json');
+        const response = await fetch('./trip-planner/destinations.json');
         if (!response.ok) {
             throw new Error('Unable to load destinations');
         }
-        destinations = await response.json();
+        const loadedData = await response.json();
+        const destinationData = Array.isArray(loadedData) ? loadedData : [];
+
+        destinationOptions = destinationData.filter(item => item.benefitType === 'destination');
+        benefitItems = destinationData.filter(item => item.benefitType === 'destination' || item.benefitType === 'incentive');
+        mixedBenefitItems = buildMixedBenefitOrder(benefitItems);
+
         destinationsError.classList.add('d-none');
     } catch (error) {
         console.error('Failed to load destinations.json:', error);
-        destinations = [];
+        destinationOptions = [];
+        benefitItems = [];
+        mixedBenefitItems = [];
         destinationsError.classList.remove('d-none');
     }
     updateUI(slider.value);
@@ -597,6 +630,8 @@ function updateUI(spend) {
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
     slider.setAttribute("aria-valuenow", Math.round(spendAmount));
 
+    renderBenefits(totalPoints);
+
     // Clear and Redraw Arcs
     svg.selectAll(".flight-path, .destination-point").remove();
     const selected = originSelect.options[originSelect.selectedIndex];
@@ -605,7 +640,7 @@ function updateUI(spend) {
     let reachableCount = 0;
     let bonusReachableCount = 0;
 
-    destinations.forEach(d => {
+    destinationOptions.forEach(d => {
         const baseReachable = basePoints >= d.cost;
         const reachable = totalPoints >= d.cost;
         const newlyReachable = offerApplied && !baseReachable && reachable;
@@ -637,6 +672,74 @@ function updateUI(spend) {
 
     const originLabel = selected.textContent?.trim() || 'selected origin';
     mapDescription.textContent = `${originLabel}. ${Math.round(totalPoints).toLocaleString()} points available. ${reachableCount} destinations reachable. ${bonusReachableCount} unlocked by bonus offer.`;
+}
+
+function renderBenefits(totalPoints) {
+    if (!benefitsRow) return;
+    benefitsRow.innerHTML = '';
+
+    mixedBenefitItems.forEach(item => {
+        const isIncentive = item.benefitType === 'incentive';
+        const isUnlocked = isIncentive || totalPoints >= Number(item.cost || 0);
+        const benefitLabel = item.benefitTitle || item.name || 'Benefit';
+        const typeLabel = isIncentive ? 'Incentive' : 'Destination';
+
+        const card = document.createElement('article');
+        card.className = `benefit-card ${isUnlocked ? 'benefit-unlocked' : ''}`;
+        card.setAttribute('aria-label', `${benefitLabel} ${typeLabel}`);
+
+        card.innerHTML = `
+            <div class="benefit-image" aria-hidden="true"></div>
+            <div class="benefit-meta">
+                <span class="benefit-type">${typeLabel}</span>
+                <span class="benefit-lock ${isUnlocked ? 'is-unlocked' : ''}" title="${isUnlocked ? 'Unlocked' : 'Locked'}">${isUnlocked ? '&#128275;' : '&#128274;'}</span>
+            </div>
+            <p class="benefit-title fw-semibold">${benefitLabel}</p>
+        `;
+
+        benefitsRow.appendChild(card);
+    });
+}
+
+function buildMixedBenefitOrder(items) {
+    const destinations = shuffleItems(items.filter(item => item.benefitType === 'destination'));
+    const incentives = shuffleItems(items.filter(item => item.benefitType === 'incentive'));
+
+    if (!incentives.length) return destinations;
+    if (!destinations.length) return incentives;
+
+    const mixed = [];
+    let destinationIndex = 0;
+    const targetGap = destinations.length / (incentives.length + 1);
+
+    incentives.forEach((incentive, index) => {
+        const targetDestinationCount = Math.round((index + 1) * targetGap);
+
+        while (destinationIndex < targetDestinationCount && destinationIndex < destinations.length) {
+            mixed.push(destinations[destinationIndex]);
+            destinationIndex += 1;
+        }
+
+        mixed.push(incentive);
+    });
+
+    while (destinationIndex < destinations.length) {
+        mixed.push(destinations[destinationIndex]);
+        destinationIndex += 1;
+    }
+
+    return mixed;
+}
+
+function shuffleItems(items) {
+    const shuffled = [...items];
+
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
 }
 </script>
 
