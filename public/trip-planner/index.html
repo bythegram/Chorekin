@@ -132,16 +132,42 @@
             overflow: hidden;
         }
 
+        .destinations-error {
+            margin-top: 0.4rem;
+            margin-bottom: 0;
+            font-size: 0.72rem;
+            color: #b23a48;
+        }
+
         .flight-path {
             fill: none;
             stroke: #b9a764;
             stroke-width: 4;
             stroke-dasharray: 8,8;
             opacity: 0;
-            transition: opacity 0.45s;
+            transition: opacity 0.45s, stroke 0.3s;
         }
 
         .active-path {
+            opacity: 1;
+        }
+
+        .bonus-path {
+            stroke: #2f9d6f;
+        }
+
+        .destination-point {
+            fill: #b9a764;
+            opacity: 0.18;
+            transition: opacity 0.3s, fill 0.3s;
+        }
+
+        .reachable-destination {
+            opacity: 0.95;
+        }
+
+        .bonus-destination {
+            fill: #2f9d6f;
             opacity: 1;
         }
 
@@ -151,6 +177,17 @@
             overflow: hidden;
             background: linear-gradient(180deg, #e8e8e9 0%, #f6f5f0 100%);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+        }
+
+        .offer-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .offer-card.offer-active {
+            border-color: #2f9d6f;
+            box-shadow: 0 5px 14px rgba(47, 157, 111, 0.25);
         }
 
         .offer-header {
@@ -220,9 +257,9 @@
 
         .fly-text {
             margin-bottom: 0.45rem;
-            font-size: 1rem;
-            line-height: 1.1;
-            color: #242424;
+            font-size: 0.72rem;
+            line-height: 1.3;
+            color: #8b8e94;
         }
 
         .apply-btn {
@@ -296,18 +333,21 @@
                         <span id="monthlySpendLabel" class="fw-bold spend-value">Monthly Spend: <span id="spendVal">$0</span></span>
                         <span class="points-value" id="pointsVal">0 Points</span>
                     </div>
-                    <input type="range" class="form-range" id="spendSlider" min="0" max="8000" step="100" value="3800" aria-labelledby="monthlySpendLabel">
+                    <input type="range" class="form-range" id="spendSlider" min="2500" max="8000" step="100" value="2500" aria-labelledby="monthlySpendLabel">
                 </div>
 
                 <div class="map-offer-grid">
-                    <div id="map-holder">
-                        <svg id="worldMap" width="100%" height="100%"></svg>
+                    <div>
+                        <div id="map-holder">
+                            <svg id="worldMap" width="100%" height="100%"></svg>
+                        </div>
+                        <p id="destinationsError" class="destinations-error d-none">Destination data is temporarily unavailable. Please try again shortly.</p>
                     </div>
-                    <article class="offer-card" aria-labelledby="offerHeading">
+                    <article id="offerCard" class="offer-card" aria-labelledby="offerHeading" role="button" tabindex="0" aria-pressed="false">
                         <h6 id="offerHeading" class="offer-header">EXCLUSIVE WELCOME OFFER</h6>
                         <div class="offer-body">
-                            <p class="offer-bonus">80,000 Bonus Miles Offer</p>
-                            <p class="offer-requirements">Requirements: after $2500 in purchases in the first 3 months</p>
+                            <p id="offerBonusText" class="offer-bonus">80,000 Bonus Miles Offer</p>
+                            <p class="offer-requirements">Requirements: after $2,500 in purchases in the first 3 months</p>
                         </div>
                     </article>
                 </div>
@@ -332,7 +372,7 @@
                             <p class="benefit-title fw-semibold">Priority<br>Boarding</p>
                         </article>
                     </div>
-                    <p class="fly-text">Fly There Faster —</p>
+                    <p class="fly-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                     <button class="btn apply-btn w-100">Apply Now</button>
                 </div>
             </div>
@@ -341,12 +381,9 @@
 </div>
 
 <script>
-const config = { bonus: 50000, multiplier: 1.5 };
-const destinations = [
-    { name: "Paris", lat: 48.85, lon: 2.35, cost: 75000 },
-    { name: "London", lat: 51.50, lon: -0.12, cost: 85000 },
-    { name: "Miami", lat: 25.76, lon: -80.19, cost: 60000 }
-];
+const config = { offerBonus: 80000, multiplier: 1.5, offerSpendRequirement: 2500, monthsInYear: 12 };
+let destinations = [];
+let offerApplied = false;
 
 // Initialize D3 Map
 const svg = d3.select("#worldMap");
@@ -365,18 +402,33 @@ d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/w
 
 const slider = document.getElementById('spendSlider');
 const originSelect = document.getElementById('originSelect');
+const offerCard = document.getElementById('offerCard');
+const destinationsError = document.getElementById('destinationsError');
+const offerBonusText = document.getElementById('offerBonusText');
+
+offerBonusText.innerText = `${config.offerBonus.toLocaleString()} Bonus Miles Offer`;
 
 originSelect.addEventListener('change', (e) => {
     if (!e.target.value) return;
-    
-    // Snap to Minimum Logic
-    const minCost = Math.min(...destinations.map(d => d.cost));
-    const minSpend = Math.max(0, (minCost - config.bonus) / (config.multiplier * 12));
-    slider.value = minSpend;
-    updateUI(minSpend);
+    slider.value = config.offerSpendRequirement;
+    updateUI(slider.value);
 });
 
-slider.addEventListener('input', (e) => updateUI(e.target.value));
+slider.addEventListener('input', (e) => {
+    const nextSpend = Math.max(config.offerSpendRequirement, Number(e.target.value));
+    if (nextSpend !== Number(e.target.value)) {
+        e.target.value = nextSpend;
+    }
+    updateUI(nextSpend);
+});
+
+offerCard.addEventListener('click', toggleOffer);
+offerCard.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleOffer();
+    }
+});
 
 if (!originSelect.value) {
     const jfkOption = originSelect.querySelector('option[value="JFK"]');
@@ -387,29 +439,68 @@ if (!originSelect.value) {
     }
 }
 
-updateUI(slider.value);
+loadDestinations();
+
+async function loadDestinations() {
+    try {
+        const response = await fetch('./destinations.json');
+        if (!response.ok) {
+            throw new Error('Unable to load destinations');
+        }
+        destinations = await response.json();
+        destinationsError.classList.add('d-none');
+    } catch (error) {
+        console.error('Failed to load destinations.json:', error);
+        destinations = [];
+        destinationsError.classList.remove('d-none');
+    }
+    updateUI(slider.value);
+}
+
+function toggleOffer() {
+    offerApplied = !offerApplied;
+    offerCard.classList.toggle('offer-active', offerApplied);
+    offerCard.setAttribute('aria-pressed', String(offerApplied));
+    updateUI(slider.value);
+}
 
 function updateUI(spend) {
-    const totalPoints = (spend * config.multiplier * 12) + config.bonus;
-    document.getElementById('spendVal').innerText = `$${Math.round(spend)}`;
+    const spendAmount = Math.max(config.offerSpendRequirement, Number(spend));
+    const basePoints = spendAmount * config.multiplier * config.monthsInYear;
+    const bonusPoints = offerApplied ? config.offerBonus : 0;
+    const totalPoints = basePoints + bonusPoints;
+
+    document.getElementById('spendVal').innerText = `$${Math.round(spendAmount)}`;
     document.getElementById('pointsVal').innerText = `${Math.round(totalPoints).toLocaleString()} Points`;
-    slider.setAttribute("aria-valuenow", Math.round(spend));
+    slider.setAttribute("aria-valuenow", Math.round(spendAmount));
 
     // Clear and Redraw Arcs
-    svg.selectAll(".flight-path").remove();
+    svg.selectAll(".flight-path, .destination-point").remove();
     const selected = originSelect.options[originSelect.selectedIndex];
     if (!selected?.dataset?.lon || !selected?.dataset?.lat) return;
     const originCoords = [parseFloat(selected.dataset.lon), parseFloat(selected.dataset.lat)];
 
     destinations.forEach(d => {
-        const opacity = totalPoints >= d.cost ? 1 : 0.1;
+        const baseReachable = basePoints >= d.cost;
+        const reachable = totalPoints >= d.cost;
+        const newlyReachable = offerApplied && !baseReachable && reachable;
+        const opacity = reachable ? 1 : 0.1;
         const link = {type: "LineString", coordinates: [originCoords, [d.lon, d.lat]]};
-        
+
         svg.append("path")
            .attr("d", path(link))
-           .attr("class", "flight-path")
+           .attr("class", `flight-path ${newlyReachable ? 'bonus-path' : ''}`)
            .style("opacity", opacity)
            .classed("active-path", true);
+
+        const destinationCoords = projection([d.lon, d.lat]);
+        if (!destinationCoords) return;
+
+        svg.append("circle")
+           .attr("class", `destination-point ${reachable ? 'reachable-destination' : ''} ${newlyReachable ? 'bonus-destination' : ''}`)
+           .attr("cx", destinationCoords[0])
+           .attr("cy", destinationCoords[1])
+           .attr("r", 3.5);
     });
 }
 </script>
