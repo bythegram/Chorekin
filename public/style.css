@@ -272,3 +272,174 @@ body {
     color: var(--wa-color-text-muted, #888);
     margin-bottom: 0.25rem;
 }
+
+/* iOS Maps-inspired redesign */
+:root {
+    --map-ocean: #071433;
+    --map-ocean-mid: #102a5e;
+    --map-land-a: #2f6b63;
+    --map-land-b: #3a7e74;
+    --sheet-bg: rgba(21, 29, 56, 0.82);
+    --sheet-border: rgba(158, 181, 255, 0.35);
+    --sheet-text: #f2f6ff;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(140% 70% at 50% -10%, #5f7ccf 0%, transparent 46%),
+        radial-gradient(160% 100% at 50% 30%, var(--map-land-a) 0%, var(--map-ocean-mid) 54%, var(--map-ocean) 100%);
+    color: var(--sheet-text);
+}
+
+#app {
+    max-width: 26rem;
+    background: transparent;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    position: relative;
+}
+
+#screen-game {
+    position: relative;
+    min-height: 100vh;
+    background: transparent;
+}
+
+#map-atmosphere {
+    position: absolute;
+    inset: -18% -5% 35%;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+        radial-gradient(68% 42% at 50% 5%, rgba(157, 183, 255, 0.7) 0%, rgba(130, 164, 255, 0.25) 30%, transparent 68%),
+        radial-gradient(80% 62% at 42% 60%, rgba(87, 157, 137, 0.55) 0%, rgba(39, 87, 119, 0.2) 56%, transparent 80%);
+    filter: blur(1px);
+}
+
+#ios-statusbar {
+    position: absolute;
+    top: 0.6rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 4;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: 1.05rem;
+    color: #fff;
+}
+
+#map-side-controls {
+    position: absolute;
+    right: 0.75rem;
+    top: 38%;
+    z-index: 4;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.map-control {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    color: #eaf2ff;
+    background: linear-gradient(180deg, rgba(18, 34, 73, 0.9), rgba(13, 27, 58, 0.9));
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+#exp-rating-wrapper {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 16.5rem;
+    z-index: 5;
+    border-radius: 1.1rem;
+    justify-content: flex-start;
+    background: rgba(17, 29, 62, 0.9);
+    color: #dce7ff;
+    border: 1px solid rgba(170, 195, 255, 0.28);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+#exp-rating {
+    --symbol-color-active: #7bc0ff;
+    --symbol-color: rgba(166, 200, 255, 0.35);
+}
+
+#exp-points {
+    color: #f6f9ff;
+    font-weight: 500;
+}
+
+.stats-wrapper {
+    display: none;
+}
+
+#bottom-tabs {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 6;
+    min-height: 22.5rem;
+    height: 48vh;
+    padding-top: 1rem;
+    border-top-left-radius: 2rem;
+    border-top-right-radius: 2rem;
+    border: 1px solid var(--sheet-border);
+    border-bottom: 0;
+    background: linear-gradient(130deg, rgba(21, 31, 66, 0.95) 0%, var(--sheet-bg) 60%, rgba(24, 68, 86, 0.75) 100%);
+    backdrop-filter: blur(18px);
+}
+
+#bottom-tabs::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0.45rem;
+    transform: translateX(-50%);
+    width: 3.2rem;
+    height: 0.28rem;
+    border-radius: 999px;
+    background: rgba(210, 223, 255, 0.4);
+}
+
+#bottom-tabs wa-tab-panel {
+    aspect-ratio: auto;
+    height: calc(100% - 4.3rem);
+    overflow-y: auto;
+    padding-bottom: 0.5rem;
+}
+
+#pet-stage {
+    border-radius: 1.1rem;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(145deg, rgba(36, 79, 130, 0.75), rgba(25, 45, 88, 0.85));
+}
+
+#bottom-tabs wa-tab {
+    background: transparent;
+    color: rgba(226, 236, 255, 0.8);
+}
+
+#bottom-tabs wa-tab[active] {
+    color: #ffffff;
+}
+
+#settings-btn {
+    bottom: 3.9rem;
+    right: 0.85rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(180deg, rgba(18, 34, 73, 0.9), rgba(13, 27, 58, 0.9));
+    color: #eaf2ff;
+    z-index: 7;
+}
+
+@media (max-width: 37.5rem) {
+    #app {
+        max-width: 100%;
+    }
+}
